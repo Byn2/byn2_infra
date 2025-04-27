@@ -209,9 +209,11 @@ export default function PayrollPage() {
                   <td className="px-4 py-4 text-sm">{payroll.totalAmount}</td>
                   <td className="px-4 py-4 text-sm">
                     <div className="flex space-x-2">
+                      <Link href={`/dashboard/payroll/${payroll._id}`}>
                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
                         <Eye className="h-4 w-4" />
                       </Button>
+                      </Link>
                       {(payroll.status === "Draft" ||
                         payroll.status === "Scheduled") && (
                         <Button

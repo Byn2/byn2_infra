@@ -16,7 +16,7 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { toast } from "sonner"
-import { createPayroll, savePayrollDraft } from "../actions"
+import { createPayroll, savePayrollDraft } from "./actions"
 
 // Update the Employee type to include payment method and details
 type Employee = {
