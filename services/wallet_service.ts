@@ -1,0 +1,248 @@
+//@ts-check
+import { getOrCreateUserTokenAccount } from '../lib/solana';
+import { Connection, clusterApiUrl } from '@solana/web3.js';
+import {
+  transferUSDC,
+  sendUSDC,
+  makeDeposit,
+  makeWithdraw,
+  retrieveUSDC,
+} from '../lib/transfer-spl';
+import * as currencyService from './currency_service';
+import * as userService from './user_service';
+import * as transactionService from './transaction_service';
+import { convertToUSD, currencyConverter } from '../lib/helpers';
+import {
+  notifyRecipient,
+  notifyTransfer,
+} from '../notifications/fcm_notification';
+
+import * as stakingService from './liquidity_providers_service';
+
+const cluster = process.env.CONNECTION_URL || 'devnet';
+const connection = new Connection(clusterApiUrl(cluster), 'confirmed');
+
+export async function getWalletBalance(data) {
+  const address = await getOrCreateUserTokenAccount(data.mobile_number);
+
+  const balance = await connection.getTokenAccountBalance(address);
+
+  return {
+    balance: balance.value.uiAmount,
+    address: address.toBase58(),
+  };
+}
+
+export async function createWallet(data) {
+  await getOrCreateUserTokenAccount(data);
+}
+
+async function processTransaction({
+  user,
+  data,
+  session,
+  type,
+  recipientTag = null,
+  reason = null,
+  externalStatus = '',
+}) {
+  try {
+    const { amount } = data;
+
+    // Validate input
+    if (isNaN(amount) || amount <= 0) {
+      throw new Error('Invalid amount');
+    }
+
+    const userCurrency = await currencyService.getCurrency(user);
+    const amountInUSDC = await convertToUSD(amount, userCurrency);
+
+    let recipientUser = null;
+    let recipientCurrency = null;
+    let convertedAmount = amount;
+
+    if (recipientTag) {
+      recipientUser = await userService.fetchUserByTag(recipientTag);
+      recipientCurrency = await currencyService.getCurrency(recipientUser);
+      convertedAmount = await currencyConverter(
+        amount,
+        userCurrency,
+        recipientCurrency
+      );
+    }
+
+    let status = 'pending';
+
+    // Handle transaction based on type
+    switch (type) {
+      case 'transfer':
+        await transferUSDC(
+          user.mobile_number,
+          recipientUser.mobile_number,
+          amountInUSDC
+        );
+        status = 'completed';
+
+        break;
+      case 'deposit':
+        // Assume deposit is processed asynchronously via webhook
+        status = externalStatus;
+        if (status == 'completed') {
+          await makeDeposit(user.mobile_number, amountInUSDC);
+        }
+        break;
+      case 'withdraw':
+        // Assume withdrawal is processed asynchronously via webhook
+        status = externalStatus;
+        if (status == 'pending') {
+          await makeWithdraw(user.mobile_number, amountInUSDC);
+        }
+        break;
+      default:
+        throw new Error('Invalid transaction type');
+    }
+
+    if (type != 'deposit' && type != 'withdraw') {
+      // Prepare transaction data
+      const transactionData = {
+        from_id: user._id,
+        to_id: recipientUser ? recipientUser._id : null,
+        amount: amount,
+        currency: userCurrency,
+        reason: reason || type.charAt(0).toUpperCase() + type.slice(1),
+        status: status,
+        type: type,
+        fee: {
+          amount: 0,
+          currency: userCurrency,
+        },
+        exchange_rate: {
+          from: {
+            currency: userCurrency,
+            amount: amount,
+          },
+          to: {
+            currency: recipientCurrency || 'USD',
+            amount: convertedAmount,
+          },
+        },
+        amount_received: convertedAmount,
+        received_currency: recipientCurrency || userCurrency,
+      };
+
+      // Store the transaction
+      return await transactionService.storeTransations(
+        transactionData,
+        session
+      );
+    }
+
+    //Send notifications if applicable
+    if (type === 'transfer' && recipientUser) {
+      await notifyTransfer(user, recipientUser, amount, userCurrency, session);
+      await notifyRecipient(user, recipientUser, amount, userCurrency, session);
+    }
+  } catch (error) {
+    console.error(`Error processing transaction: ${error.message}`);
+    throw new Error(`Transaction failed: ${error.message}`);
+  }
+}
+
+export async function transfer(user, data, session) {
+  console.log(data);
+  const result = await stakingService.useStakedFunds(
+    { amount: data.amount, requestingUserId: user._id },
+    session
+  );
+
+  return result;
+  // return processTransaction({
+  //   user,
+  //   data,
+  //   session,
+  //   type: 'transfer',
+  //   recipientTag: data.tag,
+  //   reason: data.reason || 'Transfer',
+  // });
+}
+
+export async function deposit(user, data, session, externalStatus) {
+  return await processTransaction({
+    user,
+    data,
+    session,
+    type: 'deposit',
+    externalStatus,
+  });
+}
+
+export async function withdraw(user, data, session, externalStatus) {
+  return await processTransaction({
+    user,
+    data,
+    session,
+    type: 'withdraw',
+    externalStatus,
+  });
+}
+
+export async function transferToPubKey(user, data, session) {
+  const { publicKey, amount } = data;
+
+  if (!publicKey || typeof publicKey !== 'string') {
+    throw new Error('Invalid public key');
+  }
+
+  if (isNaN(amount) || amount <= 0) {
+    throw new Error('Invalid amount');
+  }
+
+  const userCurrency = await currencyService.getCurrency(user);
+
+  const amountInUSDC = await convertToUSD(amount, userCurrency);
+
+  await sendUSDC(user.mobile_number, publicKey, amountInUSDC);
+
+  // create transaction
+  const transactionData = {
+    from_id: user._id,
+    to_id: null,
+    amount: amount,
+    currency: userCurrency,
+    reason: 'Deposit',
+    status: 'completed',
+    type: 'crypto',
+    fee: {
+      amount: 0,
+      currency: userCurrency,
+    },
+    exchange_rate: {
+      from: {
+        currency: userCurrency,
+        amount: amount,
+      },
+      to: {
+        currency: 'USD',
+        amount: amountInUSDC,
+      },
+    },
+    amount_received: amountInUSDC,
+    received_currency: userCurrency,
+  };
+
+  // Store the transaction
+  await transactionService.storeTransations(transactionData, session);
+}
+
+export async function retriveUSDC() {
+  const users = await userService.fetchAllUsers();
+  for (const user of users) {
+    const address = await getOrCreateUserTokenAccount(user.mobile_number);
+
+    const balance = await connection.getTokenAccountBalance(address);
+
+    //console.log('Balance:', balance.balance.uiAmount);
+
+    await retrieveUSDC(user.mobile_number, balance.value.uiAmount);
+  }
+}
