@@ -1,26 +1,26 @@
 //@ts-check
-import { getOrCreateUserTokenAccount } from '../lib/solana';
-import { Connection, clusterApiUrl } from '@solana/web3.js';
+import { getOrCreateUserTokenAccount } from "../lib/solana";
+import { Connection, clusterApiUrl } from "@solana/web3.js";
 import {
   transferUSDC,
   sendUSDC,
   makeDeposit,
   makeWithdraw,
   retrieveUSDC,
-} from '../lib/transfer-spl';
-import * as currencyService from './currency_service';
-import * as userService from './user_service';
-import * as transactionService from './transaction_service';
-import { convertToUSD, currencyConverter } from '../lib/helpers';
+} from "../lib/transfer-spl";
+import * as currencyService from "./currency_service";
+import * as userService from "./user_service";
+import * as transactionService from "./transaction_service";
+import { convertToUSD, currencyConverter } from "../lib/helpers";
 import {
   notifyRecipient,
   notifyTransfer,
-} from '../notifications/fcm_notification';
+} from "../notifications/fcm_notification";
 
-import * as stakingService from './liquidity_providers_service';
+import * as stakingService from "./liquidity_providers_service";
 
-const cluster = process.env.CONNECTION_URL || 'devnet';
-const connection = new Connection(clusterApiUrl(cluster), 'confirmed');
+const cluster = process.env.CONNECTION_URL || "devnet";
+const connection = new Connection(clusterApiUrl(cluster), "confirmed");
 
 export async function getWalletBalance(data) {
   const address = await getOrCreateUserTokenAccount(data.mobile_number);
@@ -44,14 +44,14 @@ async function processTransaction({
   type,
   recipientTag = null,
   reason = null,
-  externalStatus = '',
+  externalStatus = "",
 }) {
   try {
     const { amount } = data;
 
     // Validate input
     if (isNaN(amount) || amount <= 0) {
-      throw new Error('Invalid amount');
+      throw new Error("Invalid amount");
     }
 
     const userCurrency = await currencyService.getCurrency(user);
@@ -71,38 +71,40 @@ async function processTransaction({
       );
     }
 
-    let status = 'pending';
+    let status = "pending";
 
     // Handle transaction based on type
     switch (type) {
-      case 'transfer':
+      case "transfer":
+      case "payment":
+        console.log("transferUSDC", amountInUSDC);
         await transferUSDC(
           user.mobile_number,
           recipientUser.mobile_number,
           amountInUSDC
         );
-        status = 'completed';
+        status = "completed";
 
         break;
-      case 'deposit':
+      case "deposit":
         // Assume deposit is processed asynchronously via webhook
         status = externalStatus;
-        if (status == 'completed') {
+        if (status == "completed") {
           await makeDeposit(user.mobile_number, amountInUSDC);
         }
         break;
-      case 'withdraw':
+      case "withdraw":
         // Assume withdrawal is processed asynchronously via webhook
         status = externalStatus;
-        if (status == 'pending') {
+        if (status == "pending") {
           await makeWithdraw(user.mobile_number, amountInUSDC);
         }
         break;
       default:
-        throw new Error('Invalid transaction type');
+        throw new Error("Invalid transaction type");
     }
 
-    if (type != 'deposit' && type != 'withdraw') {
+    if (type != "deposit" && type != "withdraw" && type != "payment") {
       // Prepare transaction data
       const transactionData = {
         from_id: user._id,
@@ -122,7 +124,7 @@ async function processTransaction({
             amount: amount,
           },
           to: {
-            currency: recipientCurrency || 'USD',
+            currency: recipientCurrency || "USD",
             amount: convertedAmount,
           },
         },
@@ -138,10 +140,15 @@ async function processTransaction({
     }
 
     //Send notifications if applicable
-    if (type === 'transfer' && recipientUser) {
+    if (type === "transfer" && recipientUser) {
       await notifyTransfer(user, recipientUser, amount, userCurrency, session);
       await notifyRecipient(user, recipientUser, amount, userCurrency, session);
     }
+
+    return {
+      status,
+      amount_received: convertedAmount,
+    };
   } catch (error) {
     console.error(`Error processing transaction: ${error.message}`);
     throw new Error(`Transaction failed: ${error.message}`);
@@ -149,21 +156,21 @@ async function processTransaction({
 }
 
 export async function transfer(user, data, session) {
-  console.log(data);
-  const result = await stakingService.useStakedFunds(
-    { amount: data.amount, requestingUserId: user._id },
-    session
-  );
+  // console.log(data);
+  // const result = await stakingService.useStakedFunds(
+  //   { amount: data.amount, requestingUserId: user._id },
+  //   session
+  // );
 
-  return result;
-  // return processTransaction({
-  //   user,
-  //   data,
-  //   session,
-  //   type: 'transfer',
-  //   recipientTag: data.tag,
-  //   reason: data.reason || 'Transfer',
-  // });
+  // return result;
+  return processTransaction({
+    user,
+    data,
+    session,
+    type: data.type || "transfer",
+    recipientTag: data.tag,
+    reason: data.reason || "Transfer",
+  });
 }
 
 export async function deposit(user, data, session, externalStatus) {
@@ -171,7 +178,7 @@ export async function deposit(user, data, session, externalStatus) {
     user,
     data,
     session,
-    type: 'deposit',
+    type: "deposit",
     externalStatus,
   });
 }
@@ -181,7 +188,7 @@ export async function withdraw(user, data, session, externalStatus) {
     user,
     data,
     session,
-    type: 'withdraw',
+    type: "withdraw",
     externalStatus,
   });
 }
@@ -189,12 +196,12 @@ export async function withdraw(user, data, session, externalStatus) {
 export async function transferToPubKey(user, data, session) {
   const { publicKey, amount } = data;
 
-  if (!publicKey || typeof publicKey !== 'string') {
-    throw new Error('Invalid public key');
+  if (!publicKey || typeof publicKey !== "string") {
+    throw new Error("Invalid public key");
   }
 
   if (isNaN(amount) || amount <= 0) {
-    throw new Error('Invalid amount');
+    throw new Error("Invalid amount");
   }
 
   const userCurrency = await currencyService.getCurrency(user);
@@ -209,9 +216,9 @@ export async function transferToPubKey(user, data, session) {
     to_id: null,
     amount: amount,
     currency: userCurrency,
-    reason: 'Deposit',
-    status: 'completed',
-    type: 'crypto',
+    reason: "Deposit",
+    status: "completed",
+    type: "crypto",
     fee: {
       amount: 0,
       currency: userCurrency,
@@ -222,7 +229,7 @@ export async function transferToPubKey(user, data, session) {
         amount: amount,
       },
       to: {
-        currency: 'USD',
+        currency: "USD",
         amount: amountInUSDC,
       },
     },

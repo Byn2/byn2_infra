@@ -52,7 +52,6 @@ export async function registerUser(data, session) {
     session
   );
 
-  console.log('Store', user)
 
   //send verification code
   await sendSMSNotification(
@@ -106,6 +105,64 @@ export async function loginUser(data) {
   await walletService.createWallet(user.mobile_number);
 
   return { success: true, user };
+}
+
+export async function OtpLogin(email, session){
+  await connectDB();
+
+  let user = await User.findOne({ mobile_number: email })
+  
+ 
+  if (!user) {
+    const defaultName = email;
+    console.log(defaultName);
+    //const defaultTag = slugify(defaultName, { lower: true, strict: true });
+    const country_details = await getCountryCurrency('SL'); // or dynamic if available
+    const currency = await currencyService.storeCurrency({
+      code: country_details.code,
+      name: country_details.name,
+      symbol: country_details.symbol,
+    }, session);
+
+    user = await userService.storeUser(
+      {
+        name: defaultName,
+        mobile_number: email,
+        auth_provider: 'custom',
+        currency_id: currency._id,
+      },
+      session
+    );
+  }
+
+  // Generate OTP
+  const otp = Math.floor(100000 + Math.random() * 900000);
+
+  // Save OTP and timestamp
+  user.mobile_verify_code = otp;
+  user.mobile_verify_code_sent_at = new Date();
+  await user.save();
+
+  // Send OTP via SMS
+  await sendSMSNotification(
+    user.mobile_number,
+    `B-${otp} is your login code.`
+  );
+
+  const updatedUser = await userService.updateUser(
+    user._id,
+    {
+      mobile_verify_code: otp,
+      mobile_verify_code_sent_at: new Date(),
+    },
+    { session }
+  );
+
+  if (!updatedUser) return null;
+
+  await walletService.createWallet(updatedUser.mobile_number);
+
+  return updatedUser;
 }
 
 /**

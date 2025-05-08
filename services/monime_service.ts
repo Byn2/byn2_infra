@@ -108,6 +108,62 @@ export async function deposit(user, body, session) {
   return ussdCode;
 }
 
+export async function generateUSSDCode(user, body, session) {
+  const { depositing_number, transaction_id } = body;
+  console.log(body);
+
+  const deposit_number = depositing_number || user.mobile_number;
+
+
+  const Idkey = deposit_number + Date.now().toString();
+
+  // let convertedAmount = amount;
+
+  // convertedAmount = await currencyConverter(amount, userCurrency, userCurrency);
+
+  const transaction = await transactionService.fetchByID(transaction_id);
+
+  const options = {
+    method: 'POST',
+    headers: {
+      'Monime-Space-Id': monime_space_id,
+      'Idempotency-Key': Idkey,
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${monime_api_key}`,
+    },
+    body: JSON.stringify({
+      name: 'Deposit - Byn2',
+      mode: 'oneTime',
+      isActive: true,
+      amount: { currency: 'SLE', value: transaction.amount * 100 },
+      duration: '1h30m',
+      customerTarget: {
+        name: user.name,
+        reference: transaction._id,
+        payingPhoneNumber: deposit_number,
+      },
+
+      allowedProviders: ['m17', 'm18'],
+      metadata: {},
+    }),
+  };
+
+
+  const response = await fetch('https://api.monime.io/payment-codes', options);
+
+  const data = await response.json();
+
+  const ussdCode = data.result.ussdCode;
+
+  await transactionService.updateTransaction(
+    transaction_id,
+    { ussd: ussdCode },
+    session
+  );
+
+  return ussdCode;
+}
+
 // export async function withdraw(user, body, session) {
 //   const { amount, receiving_number } = body;
 

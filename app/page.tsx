@@ -81,7 +81,7 @@ export default function Home() {
 
             <div className="relative">
               <Image
-                src="/dashboard-mockup.png"
+                src="/dashboard-Byn2kup.png"
                 alt="Byn2 Dashboard"
                 width={600}
                 height={400}
@@ -259,7 +259,7 @@ export default function Home() {
 
             <div className="relative">
               <Image
-                src="/mobile-app-mockup.png"
+                src="/mobile-app-Byn2kup.png"
                 alt="Byn2 Mobile App"
                 width={500}
                 height={500}

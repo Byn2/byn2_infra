@@ -11,3 +11,7 @@ export async function createOrUpdateInvoiceItem(data, session?) {
 export async function getInvoiceItems(invoiceId: string) {
   return await InvoiceItemRepo.getInvoiceItems(invoiceId);
 }
+
+export async function getInvoiceItemsByInvoiceId(invoiceId: string) {
+  return await InvoiceItemRepo.getInvoiceItemsByInvoiceId(invoiceId);
+}

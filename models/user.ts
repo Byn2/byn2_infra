@@ -23,7 +23,17 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      required: function () {
+        return this.auth_provider === 'local';
+      },
+      
+      default: null, // allow password to be null for external providers
+    },
+    auth_provider: {
+      type: String,
+      required: true,
+      enum: ['local','custom', 'google', 'facebook'],
+      default: 'local',
     },
     currency_id: {
       type: mongoose.Schema.Types.ObjectId,

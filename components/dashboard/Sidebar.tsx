@@ -3,22 +3,21 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
 
 import {
-  BookOpen,
-  DollarSign,
-  History,
-  Home,
-  LogOut,
+  LayoutDashboard,
+  ArrowLeftRight,
+  Receipt,
+  Users,
+  PiggyBank,
   Send,
-  Settings,
-  Wallet,
-  FileText,
-  BookMarked,
+  Download,
+  Upload,
+  History,
+  BookOpen,
+  Code,
   Menu,
   X,
-  PiggyBank,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -49,10 +48,9 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4">
         {!collapsed && (
-          <Link href="/dashboard" className="flex items-center space-x-2 relative size-10  overflow-hidden">
-            <Image src="/logo.png" alt="Byn2 Logo" fill
-          className="object-cover transition-transform duration-300 group-hover"/>
-           
+          <Link href="/dashboard" className="flex items-center space-x-2">
+            <img src="/logo.svg" alt="Byn2 Logo" className="h-8 w-8" />
+            <span className="text-xl font-bold text-[#66432E]">Byn2</span>
           </Link>
         )}
         <button
@@ -67,15 +65,42 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
       <nav className="space-y-4 px-2">
         <SidebarLink
           href="/dashboard"
-          icon={<Home className="h-5 w-5" />}
+          icon={<LayoutDashboard className="h-5 w-5" />}
           label="Dashboard"
           active={pathname === "/dashboard"}
           collapsed={collapsed}
         />
 
-        {/* TRANSACTIONS */}
+        {/* Transactions - Most used feature */}
+        <SidebarLink
+          href="/dashboard/transactions"
+          icon={<ArrowLeftRight className="h-5 w-5" />}
+          label="Transactions"
+          active={pathname.includes("/transactions")}
+          collapsed={collapsed}
+        />
+
+        {/* Payroll - Important business function */}
+        <SidebarLink
+          href="/dashboard/payroll"
+          icon={<Users className="h-5 w-5" />}
+          label="Payroll"
+          active={pathname.includes("/payroll")}
+          collapsed={collapsed}
+        />
+
+        {/* Invoices - Important business function */}
+        <SidebarLink
+          href="/dashboard/invoices"
+          icon={<Receipt className="h-5 w-5" />}
+          label="Invoices"
+          active={pathname.includes("/invoices")}
+          collapsed={collapsed}
+        />
+
+        {/* TRANSACTIONS SECTION */}
         <SidebarSection
-          title="Transaction"
+          title="Money Transfer"
           links={[
             {
               href: "/dashboard/transaction/send",
@@ -84,12 +109,12 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
             },
             {
               href: "/dashboard/transaction/deposit",
-              icon: <Wallet className="h-5 w-5" />,
+              icon: <Download className="h-5 w-5" />,
               label: "Deposit Funds",
             },
             {
               href: "/dashboard/transaction/withdraw",
-              icon: <DollarSign className="h-5 w-5" />,
+              icon: <Upload className="h-5 w-5" />,
               label: "Withdraw Funds",
             },
             {
@@ -104,34 +129,7 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           pathname={pathname}
         />
 
-        <SidebarSection
-          title="Merchant"
-          links={[
-            {
-              href: "/dashboard/merchant/api-keys",
-              icon: <DollarSign className="h-5 w-5" />,
-              label: "Api Keys",
-            },
-            {
-              href: "/dashboard/merchant/webhooks",
-              icon: <BookMarked className="h-5 w-5" />,
-              label: "Webhooks",
-            },
-          ]}
-          open={open.merchant}
-          toggle={() => toggleSection("merchant")}
-          collapsed={collapsed}
-          pathname={pathname}
-        />
-
-        {/* Standalone Links */}
-        <SidebarLink
-          href="/dashboard/transactions"
-          icon={<FileText className="h-5 w-5" />}
-          label="Transactions"
-          active={pathname.includes("/transactions")}
-          collapsed={collapsed}
-        />
+        {/* Staking - Investment feature */}
         <SidebarLink
           href="/dashboard/staking"
           icon={<PiggyBank className="h-5 w-5" />}
@@ -139,21 +137,8 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           active={pathname.includes("/staking")}
           collapsed={collapsed}
         />
-        <SidebarLink
-          href="/dashboard/payroll"
-          icon={<PiggyBank className="h-5 w-5" />}
-          label="Payroll"
-          active={pathname.includes("/payroll")}
-          collapsed={collapsed}
-        />
-        <SidebarLink
-          href="/dashboard/invoices"
-          icon={<FileText className="h-5 w-5" />}
-          label="Invoices"
-          active={pathname.includes("/invoices")}
-          collapsed={collapsed}
-        />
 
+        {/* Address Book - Utility feature */}
         <SidebarLink
           href="/dashboard/address-book"
           icon={<BookOpen className="h-5 w-5" />}
@@ -161,21 +146,15 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           active={pathname.includes("/address-book")}
           collapsed={collapsed}
         />
-        {/* <SidebarLink
-          href="/dashboard/settings"
-          icon={<Settings className="h-5 w-5" />}
-          label="Setting"
-          active={pathname.includes("/settings")}
+
+        {/* Developer - Technical feature */}
+        <SidebarLink
+          href="/dashboard/developer"
+          icon={<Code className="h-5 w-5" />}
+          label="Developer"
+          active={pathname.includes("/developer")}
           collapsed={collapsed}
         />
-
-        <SidebarLink
-          href="/logout"
-          icon={<LogOut className="h-5 w-5" />}
-          label="Logout"
-          active={false}
-          collapsed={collapsed}
-        /> */}
       </nav>
     </div>
   );
@@ -188,8 +167,8 @@ function SidebarLink({ href, icon, label, active, collapsed }: any) {
       className={clsx(
         "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
         active
-          ? "bg-[#EFE8DD] text-[#01133B] dark:bg-gray-800 dark:text-white"
-          : "text-gray-600 hover:bg-[#EFE8DD] hover:text-[#01133B] dark:text-gray-400 dark:hover:bg-gray-800"
+          ? "bg-[#EFE8DD] text-[#66432E] dark:bg-gray-800 dark:text-white"
+          : "text-gray-600 hover:bg-[#EFE8DD] hover:text-[#66432E] dark:text-gray-400 dark:hover:bg-gray-800"
       )}
     >
       {icon}

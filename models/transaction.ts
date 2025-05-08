@@ -1,88 +1,103 @@
 //@ts-check
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from "mongoose";
 
-const transactionScheme = new mongoose.Schema(
+const OtpVerificationSchema = new Schema({
+  code: { type: String, required: true },
+  expiresAt: { type: Date, required: true },
+  attempts: { type: Number, default: 0 },
+  verified: { type: Boolean, default: false },
+});
+
+const TransactionSchema = new Schema(
   {
+    // Transaction parties (either individuals or businesses)
     from_id: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'From ID is required'],
+      ref: "User",
+      required: [true, "Sender ID is required"],
     },
     to_id: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
+      required: [true, "Recipient ID is required"],
     },
-    amount: {
+
+    // Core financials
+    amount: { type: Number, required: true },
+    fee: { type: Number, default: 0 },
+    currency: { type: String, default: "USD" },
+
+    // Transaction intent
+    type: {
       type: String,
-      required: [true, 'Amount is required'],
+      enum: [
+        "deposit",
+        "withdraw",
+        "transfer",
+        "payment",
+        "staking",
+        "unstaking",
+        "reward",
+        "crypto",
+        "direct_transfer",
+        "direct_withdraw",
+        "direct_deposit",
+      ],
+      required: true,
     },
-    currency: {
-      type: String,
-      required: [true, 'Currency is required'],
-      default: 'USD',
-    },
-    reason: {
-      type: String,
-      required: [true, 'Reason is required'],
-    },
+
     status: {
       type: String,
       enum: [
-        'pending',
-        'completed',
-        'failed',
-        'processing',
-        'cancelled',
-        'expired',
+        "pending",
+        "processing",
+        "success",
+        "completed",
+        "failed",
+        "refunded",
+        "cancelled",
+        "expired",
+        "initialized",
       ],
-      default: 'pending',
+      default: "pending",
     },
-    ussd: {
-      type: String,
-      default: '',
-    },
+
+    // Contextual and technical metadata
+    reason: { type: String },
+    reference: { type: String },
+    ussd: { type: String, default: "" },
+    receiving_number: { type: String, default: "" },
+
+    source: { type: String }, // e.g. "web", "app", "POS"
     provider: {
       type: String,
-      enum: ['monime', 'stripe', 'byn2', 'crypto'],
-      default: 'byn2',
+      enum: ["monime", "stripe", "byn2", "crypto"],
+      default: "byn2",
     },
-    type: {
+    paymentMethod: {
       type: String,
-      enum: ['deposit', 'withdraw', 'transfer', 'crypto', 'direct_transfer', 'direct_withdraw', 'direct_deposit'],
-      required: [true, 'Transaction type is required'],
+      enum: ["wallet", "bank", "crypto"],
+      default: "wallet",
     },
-    fee: {
-      amount: {
-        type: String,
-        default: '0',
-      },
-      currency: {
-        type: String,
-        default: 'USD',
-      },
-    },
+
+    // Exchange data (if cross-currency)
     exchange_rate: {
-      from: {
-        currency: String,
-        amount: String,
-      },
-      to: {
-        currency: String,
-        amount: String,
-      },
+      from: { currency: String, amount: String },
+      to: { currency: String, amount: String },
     },
-    amount_received: {
-      type: String,
-    },
-    received_currency: {
-      type: String,
-    },
-    receiving_number: {
-      type: String,
-      default: '',
-    },
+    amount_received: { type: Number },
+    received_currency: { type: String },
+
+    // Optional metadata and verification
+    metadata: { type: Schema.Types.Mixed },
+    otpVerification: { type: OtpVerificationSchema },
+
+    // Webhook
+    webhookSent: { type: Boolean, default: false },
+    webhookResponse: { type: String },
   },
   { timestamps: true }
 );
-//export default mongoose.models.Currency || mongoose.model('Currency', currencySchema);
-export default mongoose.models.Transaction || mongoose.model('Transaction', transactionScheme);
+
+export default mongoose.models.Transaction ||
+  mongoose.model("Transaction", TransactionSchema);

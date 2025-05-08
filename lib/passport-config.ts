@@ -1,5 +1,6 @@
 import passport from "passport"
 import { Strategy as LocalStrategy } from "passport-local"
+import { Strategy as CustomStrategy } from "passport-custom";
 import jwt from "jsonwebtoken"
 import * as authService from "../services/auth_service"
 import User from "@/models/user"
@@ -79,12 +80,36 @@ export const initializePassport = () => {
     ),
   )
 
+  passport.use(
+    "magic-link",
+    new CustomStrategy(async (req, done) => {
+      await connectDB();
+      const session = await startTransaction();
+      try {
+        const { email } = req.body;
+
+        // 1. Verify the token (you'll create this logic)
+        const user = await authService.OtpLogin(email, session);
+
+        if (!user) {
+          return done(null, false, { message: "Invalid or expired token" });
+        }
+
+        const accessToken = generateToken(user);
+        await commitTransaction(session);
+        return done(null, { user, accessToken });
+      } catch (error) {
+        abortTransaction(session);
+        return done(error);
+      }
+    })
+  );
   // You can add Facebook and Google strategies here as needed
 }
 
 export const generateToken = (user) => {
   return jwt.sign({ id: user._id, email: user.email }, process.env.SECRET_ACCESS_TOKEN || "your-secret-key", {
-    expiresIn: "365d", // Extended expiration for mobile apps
+    expiresIn: "365d",
   })
 }
 

@@ -1,8 +1,12 @@
 // lib/middleware/verifyTokenApp.ts
+import crypto from 'crypto';
 import jwt from "jsonwebtoken";
 import User from "@/models/user";
+import BusinessApiKey from "@/models/business-api-key";
 import { NextResponse } from "next/server";
 import { connectDB } from "../db";
+
+const secret = process.env.SECRET_ACCESS_TOKEN || "your-secret-key"
 
 export async function verifyToken(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -53,3 +57,51 @@ export async function verifyToken(request: Request) {
     );
   }
 }
+
+export async function authenticateApiKey(apiKey: string) {
+  if (!apiKey) return null;
+
+  try {
+    await connectDB();
+
+    // Find business by API key
+    const business = await BusinessApiKey.findOne({
+      key: apiKey,
+      active: true,
+    });
+
+    if (!business) return null;
+
+    // Find user (business owner or linked account)
+    const user = await User.findOne({ _id: business.business_id });
+    if (!user) return null;
+
+    // Update lastUsed timestamp (if you have apiKeys array in the business model)
+    business.lastUsed = new Date();
+    await business.save();
+
+    return user;
+  } catch (error) {
+    console.error("API key authentication error:", error);
+    return null;
+  }
+}
+
+
+export async function generatePaymentSignature(id: string) {
+  const timestamp = Date.now().toString();
+  const data = `${id}.${timestamp}`;
+  const hmac = crypto.createHmac('sha256', secret).update(data).digest().subarray(0, 12).toString('base64url');
+  return `${id}.${timestamp}.${hmac}`;
+}
+
+export async function verifyPaymentSignature(signature: string) {
+  const [id, timestamp, providedHmac] = signature.split('.');
+  const data = `${id}.${timestamp}`;
+  const expectedHmac = crypto.createHmac('sha256', secret).update(data).digest().subarray(0, 12).toString('base64url');
+
+  const isValid = crypto.timingSafeEqual(Buffer.from(providedHmac, 'base64url'), Buffer.from(expectedHmac, 'base64url'));
+  return isValid ? { id, timestamp } : null;
+}
+
+

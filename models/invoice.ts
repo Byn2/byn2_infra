@@ -31,6 +31,11 @@ export interface InvoiceDocument extends Document {
 }
 
 const InvoiceSchema = new Schema({
+  business_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'Business ID is required'],
+  },
   invoiceNumber: { type: String, required: true, unique: true },
   companyName: { type: String, required: true },
   recipientEmail: { type: String, required: true },
@@ -53,7 +58,7 @@ const InvoiceSchema = new Schema({
     tax: { type: Number, default: 0 },
     total: { type: Number, required: true }
   },
-  currency: { type: String, default: '$' },
+  currency: { type: String, default: 'SL' },
   installments: {
     count: { type: Number, default: 1 },
     isRecurring: { type: Boolean, default: false }

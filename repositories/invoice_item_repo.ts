@@ -27,6 +27,14 @@ export async function createOrUpdateInvoiceItem(data, options = {}) {
   }
 }
 
-export async function getInvoiceItems(invoiceId: string, options = {}) {
-  return await InvoiceItem.find({ invoiceId }, projection, options);
+export async function getInvoiceItems(invoiceId: string) {
+  return await InvoiceItem.find({ invoiceId }).select(projection);
+}
+
+export async function getInvoiceItemsByInvoiceId(invoiceId: string) {
+  return await InvoiceItem.find({ invoiceId }).select(projection);
+}
+
+export async function deleteInvoiceItem(id: string, options = {}) {
+  return await InvoiceItem.findByIdAndDelete(id, options);
 }

@@ -1,116 +1,126 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { toast } from "sonner"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
-import { ChevronDown, Copy, Building2, Bitcoin, Loader2 } from "lucide-react"
-import Link from "next/link"
+import { ChevronDown, Copy, Building2, Bitcoin, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 // Define currency types and exchange rates
-type Currency = "USD" | "SLL"
+type Currency = "USD" | "SLL";
 
 interface ExchangeRates {
   [key: string]: {
-    symbol: string
-    rate: number
-  }
+    symbol: string;
+    rate: number;
+  };
 }
 
 const exchangeRates: ExchangeRates = {
   USD: { symbol: "$", rate: 1 },
   SLL: { symbol: "Le", rate: 19500 },
-}
+};
 
 // Define interface for API response
 interface USSDResponse {
-  success: boolean
+  success: boolean;
   data?: {
-    ussdCode: string
-    reference: string
-    expiresAt: string
-  }
-  error?: string
+    ussdCode: string;
+    reference: string;
+    expiresAt: string;
+  };
+  error?: string;
 }
 
 export default function DepositPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [amount, setAmount] = useState("58,000")
-  const [currency, setCurrency] = useState<Currency>("USD")
-  const [baseCurrency, setBaseCurrency] = useState<Currency>("SLL")
-  const [paymentMethod, setPaymentMethod] = useState("bank")
-  const [mobileMoneyOption, setMobileMoneyOption] = useState("self")
-  const [phoneNumber, setPhoneNumber] = useState("")
-  const [ussdCode, setUssdCode] = useState("")
-  const [ussdReference, setUssdReference] = useState("")
-  const [ussdExpiry, setUssdExpiry] = useState("")
-  const [walletAddress, setWalletAddress] = useState("FtxUXFfH8BUFGWcH@hboUxmJJP67JqjhDpBGbeCzVv")
-  const [ussdCodeGenerated, setUssdCodeGenerated] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const [amount, setAmount] = useState("58,000");
+  const [currency, setCurrency] = useState<Currency>("USD");
+  const [baseCurrency, setBaseCurrency] = useState<Currency>("SLL");
+  const [paymentMethod, setPaymentMethod] = useState("bank");
+  const [mobileMoneyOption, setMobileMoneyOption] = useState("self");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [ussdCode, setUssdCode] = useState("");
+  const [ussdReference, setUssdReference] = useState("");
+  const [ussdExpiry, setUssdExpiry] = useState("");
+  const [walletAddress, setWalletAddress] = useState(
+    "FtxUXFfH8BUFGWcH@hboUxmJJP67JqjhDpBGbeCzVv"
+  );
+  const [ussdCodeGenerated, setUssdCodeGenerated] = useState(false);
 
   // Function to calculate converted amount
-  const calculateConvertedAmount = (inputAmount: string, from: Currency, to: Currency): string => {
+  const calculateConvertedAmount = (
+    inputAmount: string,
+    from: Currency,
+    to: Currency
+  ): string => {
     try {
       // Remove commas and convert to number
-      const numericAmount = Number.parseFloat(inputAmount.replace(/,/g, ""))
+      const numericAmount = Number.parseFloat(inputAmount.replace(/,/g, ""));
 
       if (isNaN(numericAmount)) {
-        return "0"
+        return "0";
       }
 
       // Convert from source currency to USD (as base), then to target currency
-      const amountInUSD = numericAmount / exchangeRates[from].rate
-      const convertedAmount = amountInUSD * exchangeRates[to].rate
+      const amountInUSD = numericAmount / exchangeRates[from].rate;
+      const convertedAmount = amountInUSD * exchangeRates[to].rate;
 
       // Format with commas
       return convertedAmount.toLocaleString(undefined, {
         maximumFractionDigits: 2,
-      })
+      });
     } catch (error) {
-      console.error("Error calculating converted amount:", error)
-      return "0"
+      console.error("Error calculating converted amount:", error);
+      return "0";
     }
-  }
+  };
 
   // Get the converted amount for display
-  const convertedAmount = calculateConvertedAmount(amount, currency, baseCurrency)
+  const convertedAmount = calculateConvertedAmount(
+    amount,
+    currency,
+    baseCurrency
+  );
 
   const handleDeposit = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       // In a real app, you would call your API here
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       toast("Success", {
         description: "Deposit initiated successfully",
-      })
+      });
     } catch (error) {
       toast("Error", {
         description: "Failed to process deposit",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
+    navigator.clipboard.writeText(text);
     toast("Copied", {
       description: "Copied to clipboard successfully",
-    })
-  }
+    });
+  };
 
   const generateUSSDCode = async () => {
     // Validation for phone number when "other" is selected
     if (mobileMoneyOption === "other" && !phoneNumber) {
       toast("Error", {
         description: "Please enter a valid phone number",
-      })
-      return
+      });
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       // Prepare request payload
       const payload = {
@@ -118,7 +128,7 @@ export default function DepositPage() {
         currency,
         baseCurrency,
         depositing_number: phoneNumber,
-      }
+      };
 
       // Make API call
       const response = await fetch("/api/v1/monime/deposit/create-payment", {
@@ -127,36 +137,36 @@ export default function DepositPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
-      console.log(result)
+      console.log(result);
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to generate USSD code")
+        throw new Error(result.error || "Failed to generate USSD code");
       }
 
       // Extract USSD code from response
       if (result) {
-        setUssdCode(result.ussd)
-        setUssdCodeGenerated(true)
+        setUssdCode(result.ussd);
+        setUssdCodeGenerated(true);
 
         toast("USSD Code Generated", {
           description: "Your USSD code has been generated successfully",
-        })
+        });
       } else {
-        throw new Error("Invalid response from server")
+        throw new Error("Invalid response from server");
       }
     } catch (error) {
-      console.error("USSD generation error:", error)
+      console.error("USSD generation error:", error);
       toast("Error", {
         description: "Failed to generate payment code",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="container py-8">
@@ -165,7 +175,10 @@ export default function DepositPage() {
 
         <div className="mt-4 border-b border-gray-200">
           <div className="flex space-x-8">
-            <Link href="/dashboard/transaction/send" className="pb-2 text-gray-500 hover:text-gray-700">
+            <Link
+              href="/dashboard/transaction/send"
+              className="pb-2 text-gray-500 hover:text-gray-700"
+            >
               Send Money
             </Link>
             <Link
@@ -174,10 +187,16 @@ export default function DepositPage() {
             >
               Deposit Funds
             </Link>
-            <Link href="/dashboard/transaction/withdraw" className="pb-2 text-gray-500 hover:text-gray-700">
+            <Link
+              href="/dashboard/transaction/withdraw"
+              className="pb-2 text-gray-500 hover:text-gray-700"
+            >
               Withdraw Funds
             </Link>
-            <Link href="/dashboard/transaction/history" className="pb-2 text-gray-500 hover:text-gray-700">
+            <Link
+              href="/dashboard/transaction/history"
+              className="pb-2 text-gray-500 hover:text-gray-700"
+            >
               Transaction History
             </Link>
           </div>
@@ -231,11 +250,11 @@ export default function DepositPage() {
                   : "border-l-transparent bg-transparent p-4"
               }`}
               onClick={() => {
-                setPaymentMethod("mobileMoney")
-                setUssdCodeGenerated(false)
-                setUssdCode("")
-                setUssdReference("")
-                setUssdExpiry("")
+                setPaymentMethod("mobileMoney");
+                setUssdCodeGenerated(false);
+                setUssdCode("");
+                setUssdReference("");
+                setUssdExpiry("");
               }}
             >
               <div className="flex h-12 w-12 items-center justify-center bg-[#F8F7F2]">
@@ -273,11 +292,17 @@ export default function DepositPage() {
                           <div className="flex items-center border-r px-3 py-2">
                             <select
                               value={currency}
-                              onChange={(e) => setCurrency(e.target.value as Currency)}
+                              onChange={(e) =>
+                                setCurrency(e.target.value as Currency)
+                              }
                               className="appearance-none bg-transparent pr-6 focus:outline-none"
                             >
-                              <option value="USD">{exchangeRates.USD.symbol}</option>
-                              <option value="SLL">{exchangeRates.SLL.symbol}</option>
+                              <option value="USD">
+                                {exchangeRates.USD.symbol}
+                              </option>
+                              <option value="SLL">
+                                {exchangeRates.SLL.symbol}
+                              </option>
                             </select>
                             <ChevronDown className="ml-1 h-4 w-4 text-gray-400" />
                           </div>
@@ -297,7 +322,9 @@ export default function DepositPage() {
                           <span>Base Currency:</span>
                           <select
                             value={baseCurrency}
-                            onChange={(e) => setBaseCurrency(e.target.value as Currency)}
+                            onChange={(e) =>
+                              setBaseCurrency(e.target.value as Currency)
+                            }
                             className="rounded border border-gray-200 bg-transparent px-2 py-1 text-xs focus:outline-none"
                           >
                             <option value="USD">USD</option>
@@ -309,57 +336,80 @@ export default function DepositPage() {
 
                     <div className="space-y-2">
                       <Label className="text-sm">Bank Name</Label>
-                      <Input value="United Bank of Africa (UBA)" readOnly className="mt-1 bg-gray-50" />
+                      <Input
+                        value="United Bank of Africa (UBA)"
+                        readOnly
+                        className="mt-1 bg-gray-50"
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <Label className="text-sm">Account Number</Label>
-                      <Input value="5674-665557-6543434" readOnly className="mt-1 bg-gray-50" />
+                      <Input
+                        value="5674-665557-6543434"
+                        readOnly
+                        className="mt-1 bg-gray-50"
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <Label className="text-sm">IBAN Number</Label>
-                      <Input value="5674-665557-6543434" readOnly className="mt-1 bg-gray-50" />
+                      <Input
+                        value="5674-665557-6543434"
+                        readOnly
+                        className="mt-1 bg-gray-50"
+                      />
                     </div>
                   </div>
                 </div>
 
                 <div className="col-span-2 rounded-lg bg-[#F8F7F2] p-6 mt-4">
-                  <h3 className="mb-4 text-sm font-medium">Transaction Preview</h3>
+                  <h3 className="mb-4 text-sm font-medium">
+                    Transaction Preview
+                  </h3>
 
                   <div className="space-y-4">
                     <div>
                       <p className="text-lg font-medium">
-                        Amount: {exchangeRates[baseCurrency].symbol} {convertedAmount}
+                        Amount: {exchangeRates[baseCurrency].symbol}{" "}
+                        {convertedAmount}
                       </p>
                       <p className="text-sm">Fee: Free</p>
                       <p className="text-sm text-gray-500">
                         Exchange Rate: 1 {currency} ={" "}
-                        {(exchangeRates[baseCurrency].rate / exchangeRates[currency].rate).toLocaleString()}{" "}
+                        {(
+                          exchangeRates[baseCurrency].rate /
+                          exchangeRates[currency].rate
+                        ).toLocaleString()}{" "}
                         {baseCurrency}
                       </p>
                     </div>
 
                     <div className="pt-2">
-                      <p className="text-sm font-medium">Destination: MOCHA UBA Bank Account</p>
-                      <p className="text-sm">Account Number: 5674-665557-6543434</p>
+                      <p className="text-sm font-medium">
+                        Destination: Byn2HA UBA Bank Account
+                      </p>
+                      <p className="text-sm">
+                        Account Number: 5674-665557-6543434
+                      </p>
                       <p className="text-sm">IBAN Number: 12345678910</p>
                     </div>
 
                     <div className="pt-2">
                       <p className="text-xs text-gray-500">
-                        Note: This transaction may take up to 3 business days to complete.
+                        Note: This transaction may take up to 3 business days to
+                        complete.
                       </p>
                     </div>
 
                     <Button
                       variant="outline"
                       onClick={() => {
-                        navigator.clipboard.writeText("5674-665557-6543434")
+                        navigator.clipboard.writeText("5674-665557-6543434");
                         toast({
                           title: "Copied",
                           description: "Account number copied to clipboard",
-                        })
+                        });
                       }}
                       className="mt-4 w-full"
                     >
@@ -373,13 +423,16 @@ export default function DepositPage() {
                 <div className="col-span-3 rounded-lg bg-white p-6">
                   <div className="mb-4">
                     <h3 className="text-sm font-medium">Transaction Details</h3>
-                    <p className="text-sm mt-2">Send USDC to your Mocha wallet (Solana)</p>
+                    <p className="text-sm mt-2">
+                      Send USDC to your Byn2ha wallet (Solana)
+                    </p>
                   </div>
 
                   <div className="mt-4">
                     <p className="text-sm break-all">{walletAddress}</p>
                     <p className="text-xs text-gray-500 mt-2">
-                      Copy the wallet address or scan the QR code with your wallet to deposit funds
+                      Copy the wallet address or scan the QR code with your
+                      wallet to deposit funds
                     </p>
 
                     <Button
@@ -394,7 +447,11 @@ export default function DepositPage() {
 
                 <div className="col-span-2 rounded-lg bg-[#F8F7F2] p-6 mt-4 flex items-center justify-center">
                   <div className="h-32 w-32 bg-white border border-gray-200">
-                    <img src="/abstract-qr-code.png" alt="QR Code" className="h-full w-full" />
+                    <img
+                      src="/abstract-qr-code.png"
+                      alt="QR Code"
+                      className="h-full w-full"
+                    />
                   </div>
                 </div>
               </>
@@ -410,11 +467,17 @@ export default function DepositPage() {
                             <div className="flex items-center border-r px-3 py-2">
                               <select
                                 value={currency}
-                                onChange={(e) => setCurrency(e.target.value as Currency)}
+                                onChange={(e) =>
+                                  setCurrency(e.target.value as Currency)
+                                }
                                 className="appearance-none bg-transparent pr-6 focus:outline-none"
                               >
-                                <option value="USD">{exchangeRates.USD.symbol}</option>
-                                <option value="SLL">{exchangeRates.SLL.symbol}</option>
+                                <option value="USD">
+                                  {exchangeRates.USD.symbol}
+                                </option>
+                                <option value="SLL">
+                                  {exchangeRates.SLL.symbol}
+                                </option>
                               </select>
                               <ChevronDown className="ml-1 h-4 w-4 text-gray-400" />
                             </div>
@@ -428,13 +491,16 @@ export default function DepositPage() {
                         </div>
                         <div className="mt-1 flex items-center justify-between text-sm text-gray-500">
                           <span>
-                            {exchangeRates[baseCurrency].symbol} {convertedAmount}
+                            {exchangeRates[baseCurrency].symbol}{" "}
+                            {convertedAmount}
                           </span>
                           <div className="flex items-center space-x-2">
                             <span>Base Currency:</span>
                             <select
                               value={baseCurrency}
-                              onChange={(e) => setBaseCurrency(e.target.value as Currency)}
+                              onChange={(e) =>
+                                setBaseCurrency(e.target.value as Currency)
+                              }
                               className="rounded border border-gray-200 bg-transparent px-2 py-1 text-xs focus:outline-none"
                             >
                               <option value="USD">USD</option>
@@ -449,15 +515,17 @@ export default function DepositPage() {
                         <select
                           value={mobileMoneyOption}
                           onChange={(e) => {
-                            setMobileMoneyOption(e.target.value)
-                            setUssdCodeGenerated(false)
-                            setUssdCode("")
-                            setUssdReference("")
-                            setUssdExpiry("")
+                            setMobileMoneyOption(e.target.value);
+                            setUssdCodeGenerated(false);
+                            setUssdCode("");
+                            setUssdReference("");
+                            setUssdExpiry("");
                           }}
                           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#66432E]"
                         >
-                          <option value="self">Self (Your registered number)</option>
+                          <option value="self">
+                            Self (Your registered number)
+                          </option>
                           <option value="other">Other Mobile Number</option>
                         </select>
                       </div>
@@ -468,11 +536,11 @@ export default function DepositPage() {
                           <Input
                             value={phoneNumber}
                             onChange={(e) => {
-                              setPhoneNumber(e.target.value)
-                              setUssdCodeGenerated(false)
-                              setUssdCode("")
-                              setUssdReference("")
-                              setUssdExpiry("")
+                              setPhoneNumber(e.target.value);
+                              setUssdCodeGenerated(false);
+                              setUssdCode("");
+                              setUssdReference("");
+                              setUssdExpiry("");
                             }}
                             placeholder="Enter mobile number (e.g., +232712345678)"
                             className="mt-1"
@@ -483,17 +551,23 @@ export default function DepositPage() {
                   </div>
 
                   <div className="col-span-2 rounded-lg bg-[#F8F7F2] p-6 mt-4">
-                    <h3 className="mb-4 text-sm font-medium">Transaction Preview</h3>
+                    <h3 className="mb-4 text-sm font-medium">
+                      Transaction Preview
+                    </h3>
 
                     <div className="space-y-4">
                       <div>
                         <p className="text-lg font-medium">
-                          Amount: {exchangeRates[baseCurrency].symbol} {convertedAmount}
+                          Amount: {exchangeRates[baseCurrency].symbol}{" "}
+                          {convertedAmount}
                         </p>
                         <p className="text-sm">Fee: Free</p>
                         <p className="text-sm text-gray-500">
                           Exchange Rate: 1 {currency} ={" "}
-                          {(exchangeRates[baseCurrency].rate / exchangeRates[currency].rate).toLocaleString()}{" "}
+                          {(
+                            exchangeRates[baseCurrency].rate /
+                            exchangeRates[currency].rate
+                          ).toLocaleString()}{" "}
                           {baseCurrency}
                         </p>
                       </div>
@@ -501,15 +575,27 @@ export default function DepositPage() {
                       <div className="pt-2">
                         <p className="text-sm font-medium">
                           Destination:{" "}
-                          {mobileMoneyOption === "self" ? "Your Registered Number" : phoneNumber || "Enter a number"}
+                          {mobileMoneyOption === "self"
+                            ? "Your Registered Number"
+                            : phoneNumber || "Enter a number"}
                         </p>
                         {ussdCodeGenerated && (
                           <>
-                            <p className="text-sm font-medium mt-2">USSD Code:</p>
-                            <p className="text-sm bg-white p-2 rounded border border-gray-200 mt-1">{ussdCode}</p>
-                            {ussdReference && <p className="text-xs text-gray-500 mt-1">Reference: {ussdReference}</p>}
+                            <p className="text-sm font-medium mt-2">
+                              USSD Code:
+                            </p>
+                            <p className="text-sm bg-white p-2 rounded border border-gray-200 mt-1">
+                              {ussdCode}
+                            </p>
+                            {ussdReference && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Reference: {ussdReference}
+                              </p>
+                            )}
                             {ussdExpiry && (
-                              <p className="text-xs text-gray-500">Expires: {new Date(ussdExpiry).toLocaleString()}</p>
+                              <p className="text-xs text-gray-500">
+                                Expires: {new Date(ussdExpiry).toLocaleString()}
+                              </p>
                             )}
                           </>
                         )}
@@ -522,11 +608,14 @@ export default function DepositPage() {
                             : "Note: Click 'Send' to generate a USSD code for this transaction."}
                         </p>
                       </div>
-                      {mobileMoneyOption === "other" && !phoneNumber && ussdCodeGenerated === false && (
-                        <p className="text-xs text-red-500 mt-2">
-                          Please enter a valid phone number before generating the USSD code.
-                        </p>
-                      )}
+                      {mobileMoneyOption === "other" &&
+                        !phoneNumber &&
+                        ussdCodeGenerated === false && (
+                          <p className="text-xs text-red-500 mt-2">
+                            Please enter a valid phone number before generating
+                            the USSD code.
+                          </p>
+                        )}
                       {!ussdCodeGenerated ? (
                         <Button
                           variant="default"
@@ -536,14 +625,19 @@ export default function DepositPage() {
                         >
                           {isLoading ? (
                             <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                              Processing...
                             </>
                           ) : (
                             "Send"
                           )}
                         </Button>
                       ) : (
-                        <Button variant="outline" onClick={() => copyToClipboard(ussdCode)} className="mt-4 w-full">
+                        <Button
+                          variant="outline"
+                          onClick={() => copyToClipboard(ussdCode)}
+                          className="mt-4 w-full"
+                        >
                           Copy USSD Code
                         </Button>
                       )}
@@ -556,5 +650,5 @@ export default function DepositPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
