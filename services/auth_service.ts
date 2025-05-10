@@ -165,6 +165,53 @@ export async function OtpLogin(email, session){
   return updatedUser;
 }
 
+export async function botLogin(data, session){
+  await connectDB();
+
+  const country_details = await getCountryCurrency('SL'); // or dynamic if available
+    const currency = await currencyService.storeCurrency({
+      code: country_details.code,
+      name: country_details.name,
+      symbol: country_details.symbol,
+    }, session);
+
+    const user = await userService.storeUser(
+      {
+        name: data.name,
+        mobile_number: data.mobile_number,
+        auth_provider: 'custom',
+        currency_id: currency._id,
+        bot_token: data.bot_token,
+        bot_session: data.bot_session,
+      },
+      session
+    );
+  
+
+  // Generate OTP
+  const otp = Math.floor(100000 + Math.random() * 900000);
+
+  // Save OTP and timestamp
+  user.mobile_verify_code = otp;
+  user.mobile_verify_code_sent_at = new Date();
+  await user.save();
+
+  const updatedUser = await userService.updateUser(
+    user._id,
+    {
+      mobile_verify_code: otp,
+      mobile_verify_code_sent_at: new Date(),
+    },
+    { session }
+  );
+
+  if (!updatedUser) return null;
+
+  await walletService.createWallet(updatedUser.mobile_number);
+
+  return updatedUser;
+}
+
 /**
  * Verifies the OTP provided by the user. If the OTP is valid, the user's mobile number is marked as verified.
  * @param {User} user - The user to verify the OTP for

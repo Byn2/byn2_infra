@@ -38,6 +38,19 @@ export async function fetchUserByMobile(mobile) {
   return user;
 }
 
+export async function fetchUserByMobileBot(mobile) {
+  await connectDB();
+  const user = await userRepo.findUserByMobile(mobile);
+  if (!user) {
+    return { success: false, message: 'User not found' };
+  }
+  return {
+    success: true,
+    data: user
+  };
+  
+}
+
 export async function fetchUserByTag(tag) {
   await connectDB();
   const user = await userRepo.findUserByTag(tag);

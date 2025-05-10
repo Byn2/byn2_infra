@@ -10,6 +10,8 @@ const projection = {
   fcm_token: 1,
   mobile_kyc_verified_at: 1,
   currency_id: 1,
+  bot_token: 1,
+  bot_session: 1,
 };
 
 /**

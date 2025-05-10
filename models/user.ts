@@ -64,7 +64,10 @@ const userSchema = new mongoose.Schema(
     business_website: { type: String, default: '' },
     accepts_payments: { type: Boolean, default: false },
     default_payment_note: { type: String, default: '' },
-    
+
+    //bot
+    bot_token: { type: String, default: '' },
+    bot_session: { type: String, default: '' },
   },
   { timestamps: true }
 );

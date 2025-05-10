@@ -6,25 +6,60 @@ const whapiButtonUrl = `${whapiUrl}/messages/interactive`
 
 export async function sendTextMessage(phoneNumber: string, message: string) {
     try{
+        const payload = {
+            to: phoneNumber,
+            typing_time: 2,
+            body: message
+        }
 
-    }catch(error){
+        const response = await fetch(whapiTextUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${whapiToken}`
+            },
+            body: JSON.stringify(payload)
+        })
         
+    }catch(error){
+        console.log(error)
     }
 }
 
 export async function sendImageMessage(phoneNumber: string, imageUrl: string) {
     try{
+        const payload = {
+            to: phoneNumber,
+            image: imageUrl,
+            caption: ""
+        }
 
+        const response = await fetch(whapiImageUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${whapiToken}`
+            },
+            body: JSON.stringify(payload)
+        })
     }catch(error){
-        
+        console.log(error)
     }
 }
 
-export async function sendButtonMessage(phoneNumber: string, message: string, buttons: string[]) {
+export async function sendButtonMessage(payload) {
     try{
-
-    }catch(error){
+        const response = await fetch(whapiButtonUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${whapiToken}`
+            },
+            body: JSON.stringify(payload)
+        })
         
+    }catch(error){
+        console.log(error)
     }
 }
 
