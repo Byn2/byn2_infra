@@ -9,6 +9,7 @@ import {
 
 export async function POST(request: Request) {
   const auth = await verifyToken(request);
+  
   if ("user" in auth === false) return auth;
 
   const body = await request.json();

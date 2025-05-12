@@ -1,5 +1,5 @@
  //@ts-nocheck
-//@ts-ignore
+
  import { lookup } from 'country-data-codes';
 //const { getCountryList, lookup} = require("country-data-codes")
 import converter from 'currency-exchanger-js';

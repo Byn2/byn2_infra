@@ -291,9 +291,9 @@ export default function Home() {
                 </div>
                 <div className="flex-1">
                   <p className="mb-4 text-gray-700">
-                    "Byn2 offers both short-term and long term loans to its
+                    Byn2 offers both short-term and long term loans to its
                     users through 'The community', a peer-to-peer lending
-                    platform."
+                    platform.
                   </p>
                   <p className="font-bold">Rachel Wright</p>
                   <p className="text-sm text-gray-600">Business Owner</p>

@@ -12,7 +12,7 @@ export async function sendTextMessage(phoneNumber: string, message: string) {
             body: message
         }
 
-        const response = await fetch(whapiTextUrl, {
+        await fetch(whapiTextUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -34,7 +34,7 @@ export async function sendImageMessage(phoneNumber: string, imageUrl: string) {
             caption: ""
         }
 
-        const response = await fetch(whapiImageUrl, {
+        await fetch(whapiImageUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -47,9 +47,10 @@ export async function sendImageMessage(phoneNumber: string, imageUrl: string) {
     }
 }
 
-export async function sendButtonMessage(payload: any) {
+//@ts-ignore
+export async function sendButtonMessage(payload) {
     try{
-        const response = await fetch(whapiButtonUrl, {
+        await fetch(whapiButtonUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -64,23 +65,23 @@ export async function sendButtonMessage(payload: any) {
 }
 
 
-export const formatWhatsAppNumber = (phoneNumber: string) => {
-    // Remove all non-digit characters
-    const digits = phoneNumber.replace(/\D/g, "");
+// export const formatWhatsAppNumber = (phoneNumber: string) => {
+//     // Remove all non-digit characters
+//     const digits = phoneNumber.replace(/\D/g, "");
   
-    // WhatsApp API expects numbers in international format without '+' or '00'
-    // For Sierra Leone numbers (232 country code)
-    if (digits.startsWith("232") && digits.length === 12) {
-      return digits; // Already in correct format
-    }
+//     // WhatsApp API expects numbers in international format without '+' or '00'
+//     // For Sierra Leone numbers (232 country code)
+//     if (digits.startsWith("232") && digits.length === 12) {
+//       return digits; // Already in correct format
+//     }
   
-    // For numbers with country code but extra characters
-    if (digits.length > 9) {
-      // Remove leading zeros and ensure proper country code
-      return digits.startsWith("0") ? digits.slice(1) : digits;
-    }
+//     // For numbers with country code but extra characters
+//     if (digits.length > 9) {
+//       // Remove leading zeros and ensure proper country code
+//       return digits.startsWith("0") ? digits.slice(1) : digits;
+//     }
   
-    // Default case - assume it's already in local format
-    // Add country code if missing (232 for Sierra Leone)
-    return `232${digits}`;
-  };
+//     // Default case - assume it's already in local format
+//     // Add country code if missing (232 for Sierra Leone)
+//     return `232${digits}`;
+//   };

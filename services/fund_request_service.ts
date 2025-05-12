@@ -7,7 +7,7 @@ import { currencyConverter } from '../lib/helpers';
 import {
   notifyFundRequest,
   notifyFundRequestStatus,
-} from '../notifications/fcm_notification.js';
+} from '../notifications/fcm_notification';
 
 export async function fetchById(id: any) {
   const fundRequest = await fundRequestRepo.fetchById(id);

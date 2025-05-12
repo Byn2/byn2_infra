@@ -1,4 +1,4 @@
-//@ts-check
+//@ts-nocheck
 import mongoose from 'mongoose';
 
 export async function startTransaction() {
@@ -8,13 +8,13 @@ export async function startTransaction() {
 }
 
 // Function to commit a transaction
-export async function commitTransaction(session: any) {
+export async function commitTransaction(session) {
   await session.commitTransaction();
   session.endSession();
 }
 
 // Function to abort a transaction
-export async function abortTransaction(session: any) {
+export async function abortTransaction(session) {
   await session.abortTransaction();
   session.endSession();
 }

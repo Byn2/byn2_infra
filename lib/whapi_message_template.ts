@@ -1,4 +1,5 @@
-export async function initialMessageTemplate(name: string, mobile: string) {
+//@ts-nocheck
+export async function initialMessageTemplate(name, mobile) {
   return {
     body: {
       text: `Hi ${name}, I'm Mocha Agent — your virtual assistant. You can use me to send money, deposit via mobile money or crypto, withdraw funds, and check your wallet balance easily.`,
@@ -17,11 +18,11 @@ export async function initialMessageTemplate(name: string, mobile: string) {
   };
 }
 
-export async function otpVerifyMessageTemplate(otp: string) {}
+// export async function otpVerifyMessageTemplate(otp: string) {}
 
-export async function otpResendMessageTemplate(otp: string) {}
+// export async function otpResendMessageTemplate(otp: string) {}
 
-export async function congratulationsMessageTemplate(name: string, mobile: string) {
+export async function congratulationsMessageTemplate(name, mobile) {
   return {
     body: {
       text: `🎉 Congratulations ${name}! We’re thrilled to have you on board.
@@ -68,7 +69,7 @@ You can now deposit with mobile money or crypto, transfer funds, withdraw to you
   };
 }
 
-export async function mainMenuMessageTemplate(name: string, mobile: string) {
+export async function mainMenuMessageTemplate(name, mobile) {
   return {
     body: {
       text: `Good Morning, ${name}! \n It's always great to hear from you. \n\n How can Mocha be of help today?`,
@@ -112,7 +113,7 @@ export async function mainMenuMessageTemplate(name: string, mobile: string) {
 }
 
 //deposit
-export async function depositMethodMessageTemplate(name: string, mobile: string) {
+export async function depositMethodMessageTemplate(mobile) {
   return {
     body: {
       text: `Please select the method you want to use to deposit funds.`,
@@ -149,7 +150,7 @@ export async function depositMethodMessageTemplate(name: string, mobile: string)
   };
 }
 
-export async function mmDepositMessageTemplate1(name: string, mobile: string) {
+export async function mmDepositMessageTemplate1(mobile) {
   return {
     body: {
       text: 'Are depositing from',
@@ -173,15 +174,15 @@ export async function mmDepositMessageTemplate1(name: string, mobile: string) {
   };
 }
 
-export async function mmDepositMessageTemplateAmount(name: string, mobile: string) {
+export async function mmDepositMessageTemplateAmount() {
   return 'Please enter the amount you want to desposit in your local currency e.g 10';
 }
 
 export async function mmDepositMessageTemplateConfirm(
-  name: string,
-  mobile: string,
-  depositing_number: any,
-  amount: any
+  name,
+  mobile,
+  depositing_number,
+  amount
 ) {
   return {
     header: {
@@ -209,7 +210,7 @@ export async function mmDepositMessageTemplateConfirm(
   };
 }
 
-export async function mmDepositMessageTemplateUSSD(name: string, mobile: string, ussd: any) {
+export async function mmDepositMessageTemplateUSSD(mobile, ussd) {
   return {
     header: {},
     body: {
@@ -234,14 +235,13 @@ export async function mmDepositMessageTemplateUSSD(name: string, mobile: string,
 }
 
 //different number
-export async function mmDepositMessageTemplateDifferentNumber(name: string, mobile: string) {
+export async function mmDepositMessageTemplateDifferentNumber() {
   return 'Please enter the number you want to use to deposit funds with e.g +232123456';
 }
 
 export async function mmDepositMessageTemplateUSSDDifferentNumber(
-  name: string,
-  mobile: string,
-  ussd: any
+  mobile,
+  ussd
 ) {
   return {
     body: {
@@ -266,7 +266,7 @@ export async function mmDepositMessageTemplateUSSDDifferentNumber(
 }
 
 //transfer
-export async function transferMessageTemplateCurrency(name: string, mobile: string) {
+export async function transferMessageTemplateCurrency(mobile) {
   return {
     header: {
       text: 'Select Currency',
@@ -293,23 +293,23 @@ export async function transferMessageTemplateCurrency(name: string, mobile: stri
   };
 }
 
-export async function transfertMessageTemplateAmountLocal(name: string, mobile: string) {
+export async function transfertMessageTemplateAmountLocal() {
   return 'Please enter the amount you want to send in your local currency (Le) e.g 10';
 }
 
-export async function transfertMessageTemplateAmountUSD(name: string, mobile: string) {
+export async function transfertMessageTemplateAmountUSD() {
   return 'Please enter the amount you want to send in USD ($) e.g 1';
 }
 
-export async function transferMessageTemplateNumber(name: string, mobile: string) {
+export async function transferMessageTemplateNumber() {
   return 'Please enter the Whatsapp number you want to send funds to e.g +232123456';
 }
 
 export async function transferMessageTemplateConfirmLocal(
-  name: string,
-  mobile: string,
-  toNumber: any,
-  amount: any
+  name,
+  mobile,
+  toNumber,
+  amount
 ) {
   return {
     header: {
@@ -338,10 +338,10 @@ export async function transferMessageTemplateConfirmLocal(
 }
 
 export async function transferMessageTemplateConfirmUSD(
-  name: string,
-  mobile: string,
-  toNumber: any,
-  amount: any
+  name,
+  mobile,
+  toNumber,
+  amount
 ) {
   return {
     header: {
@@ -369,7 +369,7 @@ export async function transferMessageTemplateConfirmUSD(
   };
 }
 
-export async function transfertMessageTemplateStatusSender(name: string, mobile: string, currency: string, amount: string, status: string, toNumber: string) {
+export async function transfertMessageTemplateStatusSender(name, currency, amount, status, toNumber) {
   if(status === 'true'){
     return `Hi ${name}, you successfully sent ${amount} ${currency} to ${toNumber}`
   }else{
@@ -377,7 +377,7 @@ export async function transfertMessageTemplateStatusSender(name: string, mobile:
   }
 }
 
-export async function transfertMessageTemplateAmountStatusReceiver(name: string, mobile: string, currency: string, amount: string, from: string) {
+export async function transfertMessageTemplateAmountStatusReceiver(name, mobile, currency, amount, from) {
   if(name){
     return `Hi ${name}, you received ${amount} ${currency} from ${from}`
   }else{

@@ -1,5 +1,4 @@
-//@ts-nocheck
-//@ts-ignore
+
 import {
   depositMethodMessageTemplate,
   mmDepositMessageTemplate1,
@@ -29,7 +28,7 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
       },
       session
     );
-    const ctx = await depositMethodMessageTemplate(message.from_name, message.from);
+    const ctx = await depositMethodMessageTemplate(message.from);
     await sendButtonMessage(ctx);
 
   } else if (botIntent.intent === 'deposit') {
@@ -45,7 +44,7 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
       }
       if (botIntent.step === 0 || botIntent.step === 1) {
         // who is funding the transaction
-        const ctx = await mmDepositMessageTemplate1(message.from_name, message.from);
+        const ctx = await mmDepositMessageTemplate1(message.from);
         await sendButtonMessage(ctx);
 
         //update bot step
@@ -59,7 +58,7 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
       } else if (botIntent.step === 2) {
         const fundingAcct = message.reply?.buttons_reply?.id;
         if (fundingAcct === 'ButtonsV3:self') {
-          const ctx = await mmDepositMessageTemplateAmount(message.from_name, message.from);
+          const ctx = await mmDepositMessageTemplateAmount();
           await sendTextMessage(message.from, ctx);
           await updateBotIntent(
             botIntent._id,
@@ -81,15 +80,12 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
               },
               session
             );
-            const ctx = await mmDepositMessageTemplateDifferentNumber(
-              message.from_name,
-              message.from
-            );
+            const ctx = await mmDepositMessageTemplateDifferentNumber();
             await sendTextMessage(message.from, ctx);
           } else if (botIntent.payer === 'different_number' && botIntent.number === null) {
             const number = message.text?.body;
 
-            const ctx = await mmDepositMessageTemplateAmount(message.from_name, message.from);
+            const ctx = await mmDepositMessageTemplateAmount();
             await sendTextMessage(message.from, ctx);
             await updateBotIntent(
               botIntent._id,
@@ -150,14 +146,14 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
 
           if (botIntent.payer === 'self') {
             const ctx = await mmDepositMessageTemplateUSSD(
-              message.from_name,
+            
               message.from,
               payload
             );
             await sendButtonMessage(ctx);
           } else if (botIntent.payer === 'different_number') {
             const ctx = await mmDepositMessageTemplateUSSDDifferentNumber(
-              message.from_name,
+              
               message.from,
               payload
             );

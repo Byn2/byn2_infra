@@ -1,67 +1,66 @@
-//@ts-nocheck
-//@ts-ignore
-import { WebSocketServer } from 'ws';
-import { Server } from 'http';
 
-const subscribers = new Map();
+// import { WebSocketServer } from 'ws';
+// // import { Server } from 'http';
 
-export function initializeWebSocket(server) {
-  const wss = new WebSocketServer({ noServer: true });
+// const subscribers = new Map();
 
-  server.on('upgrade', (request, socket, head) => {
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      wss.emit('connection', ws, request);
-    });
-  });
+// export function initializeWebSocket(server) {
+//   const wss = new WebSocketServer({ noServer: true });
 
-  wss.on('connection', (ws) => {
-    console.log('New client connected');
+//   server.on('upgrade', (request, socket, head) => {
+//     wss.handleUpgrade(request, socket, head, (ws) => {
+//       wss.emit('connection', ws, request);
+//     });
+//   });
 
-    ws.on('message', (message) => {
-      try {
-        const data = JSON.parse(message.toString());
-        console.log(data);
+//   wss.on('connection', (ws) => {
+//     console.log('New client connected');
 
-        if (data.type === 'subscribe' && data.userId) {
-          subscribers.set(data.userId.toString(), ws);
-          console.log(`User ${data.userId} subscribed`);
-          ws.send(
-            JSON.stringify({ status: 'subscribed', userId: data.userId })
-          );
-        }
-      } catch (error) {
-        console.error('Invalid message format:', error);
-        ws.send(JSON.stringify({ error: 'Invalid JSON format' }));
-      }
-    });
+//     ws.on('message', (message) => {
+//       try {
+//         const data = JSON.parse(message.toString());
+//         console.log(data);
 
-    ws.on('close', () => {
-      for (const [userId, socket] of subscribers.entries()) {
-        if (socket === ws) {
-          subscribers.delete(userId);
-          console.log(`User ${userId} unsubscribed`);
-          break;
-        }
-      }
-    });
-  });
+//         if (data.type === 'subscribe' && data.userId) {
+//           subscribers.set(data.userId.toString(), ws);
+//           console.log(`User ${data.userId} subscribed`);
+//           ws.send(
+//             JSON.stringify({ status: 'subscribed', userId: data.userId })
+//           );
+//         }
+//       } catch (error) {
+//         console.error('Invalid message format:', error);
+//         ws.send(JSON.stringify({ error: 'Invalid JSON format' }));
+//       }
+//     });
 
-  console.log('WebSocket server initialized');
-}
+//     ws.on('close', () => {
+//       for (const [userId, socket] of subscribers.entries()) {
+//         if (socket === ws) {
+//           subscribers.delete(userId);
+//           console.log(`User ${userId} unsubscribed`);
+//           break;
+//         }
+//       }
+//     });
+//   });
 
-export function walletUpdateSocket(userId, body) {
-  console.log('Sending transaction update first...');
-  const wsClient = subscribers.get(userId.toString());
+//   console.log('WebSocket server initialized');
+// }
 
-  if (wsClient && wsClient.readyState === wsClient.OPEN) {
-    console.log('Sending transaction update...');
-    wsClient.send(
-      JSON.stringify({
-        type: 'transaction_update',
-        message: 'Transfer successful',
-        amount: body.amount,
-        recipient: body.recipient,
-      })
-    );
-  }
-}
+// export function walletUpdateSocket(userId, body) {
+//   console.log('Sending transaction update first...');
+//   const wsClient = subscribers.get(userId.toString());
+
+//   if (wsClient && wsClient.readyState === wsClient.OPEN) {
+//     console.log('Sending transaction update...');
+//     wsClient.send(
+//       JSON.stringify({
+//         type: 'transaction_update',
+//         message: 'Transfer successful',
+//         amount: body.amount,
+//         recipient: body.recipient,
+//       })
+//     );
+//   }
+// }

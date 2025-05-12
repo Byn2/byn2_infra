@@ -17,7 +17,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
   const mobile = `+${message.from}`;
  
   if (botIntent.intent === 'start') {
-    const ctx = await transferMessageTemplateCurrency(message.from_name, message.from);
+    const ctx = await transferMessageTemplateCurrency(message.from);
     await sendButtonMessage(ctx);
     await updateBotIntent(
       botIntent._id,
@@ -39,7 +39,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
         );
       }
       if (botIntent.step === 0 || botIntent.step === 1) {
-        const ctx = await transfertMessageTemplateAmountLocal(message.from_name, message.from);
+        const ctx = await transfertMessageTemplateAmountLocal();
         await sendTextMessage(message.from, ctx);
         await updateBotIntent(
           botIntent._id,
@@ -51,7 +51,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
       } else if (botIntent.step === 2) {
         const amt = message.text?.body;
 
-        const ctx = await transferMessageTemplateNumber(message.from_name, message.from);
+        const ctx = await transferMessageTemplateNumber();
         await sendTextMessage(message.from, ctx );
 
         await updateBotIntent(
@@ -99,7 +99,6 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
             );
             const ctx = await transfertMessageTemplateStatusSender(
               message.from_name,
-              message.from,
               'Le',
               botIntent.amount,
               'true',
@@ -109,7 +108,6 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
           } catch (e) {
             const ctx = await transfertMessageTemplateStatusSender(
                 message.from_name,
-                message.from,
                 'Le',
                 botIntent.amount,
                 'false',
@@ -133,7 +131,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
             );
           }
           if (botIntent.step === 0 || botIntent.step === 1) {
-            const ctx = await transfertMessageTemplateAmountUSD(message.from_name, message.from);
+            const ctx = await transfertMessageTemplateAmountUSD();
             await sendTextMessage(message.from, ctx );
             await updateBotIntent(
               botIntent._id,
@@ -145,7 +143,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
           } else if (botIntent.step === 2) {
             const amt = message.text?.body;
     
-            const ctx = await transferMessageTemplateNumber(message.from_name, message.from);
+            const ctx = await transferMessageTemplateNumber();
             await sendTextMessage(message.from, ctx );
     
             await updateBotIntent(
@@ -189,7 +187,6 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
                 );
                 const ctx = await transfertMessageTemplateStatusSender(
                   message.from_name,
-                  message.from,
                   '$',
                   botIntent.amount,
                   'true',
@@ -199,7 +196,6 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
               } catch (e) {
                 const ctx = await transfertMessageTemplateStatusSender(
                     message.from_name,
-                    message.from,
                     '$',
                     botIntent.amount,
                     'false',

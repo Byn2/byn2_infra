@@ -1,5 +1,4 @@
 //@ts-nocheck
-//@ts-ignore
 import {
   TOKEN_PROGRAM_ID,
   createInitializeAccount3Instruction,
@@ -19,12 +18,12 @@ import {
 } from '@solana/web3.js';
 
 const cluster = process.env.CONNECTION_URL;
-// @ts-ignore
+
 const mint = new PublicKey(process.env.USDC_MINT);
 const byn2_keypair = process.env.BYN2_SECRET_KEY;
-// @ts-ignore
+
 const connection = new Connection(clusterApiUrl(cluster), 'confirmed');
-// @ts-ignore
+
 let keypair = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(byn2_keypair)));
 
 export async function getOrCreateUserTokenAccount(phoneNumber) {
