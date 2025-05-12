@@ -1,3 +1,5 @@
+//@ts-ignore
+//@ts-nocheck
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";

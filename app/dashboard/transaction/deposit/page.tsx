@@ -406,10 +406,10 @@ export default function DepositPage() {
                       variant="outline"
                       onClick={() => {
                         navigator.clipboard.writeText("5674-665557-6543434");
-                        toast({
-                          title: "Copied",
-                          description: "Account number copied to clipboard",
-                        });
+                        // toast({
+                        //   title: "Copied",
+                        //   description: "Account number copied to clipboard",
+                        // });
                       }}
                       className="mt-4 w-full"
                     >

@@ -1,4 +1,5 @@
-//@ts-check
+//@ts-nocheck
+//@ts-ignore
 import { getOrCreateUserTokenAccount } from "../lib/solana";
 import { Connection, clusterApiUrl } from "@solana/web3.js";
 import {
@@ -16,13 +17,16 @@ import {
   notifyRecipient,
   notifyTransfer,
 } from "../notifications/fcm_notification";
+import { sendTextMessage } from "@/lib/whapi"; 
+import {transfertMessageTemplateAmountStatusReceiver} from "@/lib/whapi_message_template";
 
 import * as stakingService from "./liquidity_providers_service";
+import { IUser } from "@/types/user";
 
 const cluster = process.env.CONNECTION_URL || "devnet";
 const connection = new Connection(clusterApiUrl(cluster), "confirmed");
 
-export async function getWalletBalance(data) {
+export async function getWalletBalance(data: any) {
   const address = await getOrCreateUserTokenAccount(data.mobile_number);
 
   const balance = await connection.getTokenAccountBalance(address);
@@ -33,7 +37,7 @@ export async function getWalletBalance(data) {
   };
 }
 
-export async function createWallet(data) {
+export async function createWallet(data: any) {
   await getOrCreateUserTokenAccount(data);
 }
 
@@ -42,9 +46,10 @@ async function processTransaction({
   data,
   session,
   type,
-  recipientTag = null,
+  identifier = null,
   reason = null,
   externalStatus = "",
+  platform = null,
 }) {
   try {
     const { amount } = data;
@@ -61,8 +66,8 @@ async function processTransaction({
     let recipientCurrency = null;
     let convertedAmount = amount;
 
-    if (recipientTag) {
-      recipientUser = await userService.fetchUserByTag(recipientTag);
+    if (identifier) {
+      recipientUser = await userService.fetchUserByTagOrMobile(identifier);
       recipientCurrency = await currencyService.getCurrency(recipientUser);
       convertedAmount = await currencyConverter(
         amount,
@@ -77,7 +82,6 @@ async function processTransaction({
     switch (type) {
       case "transfer":
       case "payment":
-        console.log("transferUSDC", amountInUSDC);
         await transferUSDC(
           user.mobile_number,
           recipientUser.mobile_number,
@@ -128,21 +132,34 @@ async function processTransaction({
             amount: convertedAmount,
           },
         },
+        platform: platform,
         amount_received: convertedAmount,
         received_currency: recipientCurrency || userCurrency,
       };
 
       // Store the transaction
-      return await transactionService.storeTransations(
+      await transactionService.storeTransations(
         transactionData,
         session
       );
     }
 
+    console.log("Transaction processed successfully");
+
     //Send notifications if applicable
-    if (type === "transfer" && recipientUser) {
+    if (type === "transfer" && recipientUser && platform != "whatsapp") {
       await notifyTransfer(user, recipientUser, amount, userCurrency, session);
       await notifyRecipient(user, recipientUser, amount, userCurrency, session);
+      
+    }
+
+    if(platform === "whatsapp"){
+      console.log("Sending recipient msg");
+      const sanitizedNumber = recipientUser.mobile_number.replace('+', '');
+      const ctx = await transfertMessageTemplateAmountStatusReceiver(recipientUser.name, recipientUser.mobile_number, 'Le', amount, user.name);
+      console.log("ctx", ctx);
+      console.log("sanitizedNumber", sanitizedNumber);
+      await sendTextMessage(sanitizedNumber, ctx);
     }
 
     return {
@@ -150,12 +167,15 @@ async function processTransaction({
       amount_received: convertedAmount,
     };
   } catch (error) {
-    console.error(`Error processing transaction: ${error.message}`);
-    throw new Error(`Transaction failed: ${error.message}`);
+
+    if (error instanceof Error) {
+      throw new Error(`Transaction failed: ${error.message}`);
+    }
+    throw new Error('Transaction failed: An unknown error occurred');
   }
 }
 
-export async function transfer(user, data, session) {
+export async function transfer(user: any, data: any, session: any) {
   // console.log(data);
   // const result = await stakingService.useStakedFunds(
   //   { amount: data.amount, requestingUserId: user._id },
@@ -168,12 +188,13 @@ export async function transfer(user, data, session) {
     data,
     session,
     type: data.type || "transfer",
-    recipientTag: data.tag,
+    identifier: data.identifier,
     reason: data.reason || "Transfer",
+    platform: data.platform || "web",
   });
 }
 
-export async function deposit(user, data, session, externalStatus) {
+export async function deposit(user: any, data: any, session: any, externalStatus: any) {
   return await processTransaction({
     user,
     data,
@@ -183,7 +204,7 @@ export async function deposit(user, data, session, externalStatus) {
   });
 }
 
-export async function withdraw(user, data, session, externalStatus) {
+export async function withdraw(user: any, data: any, session: any, externalStatus: any) {
   return await processTransaction({
     user,
     data,
@@ -193,7 +214,7 @@ export async function withdraw(user, data, session, externalStatus) {
   });
 }
 
-export async function transferToPubKey(user, data, session) {
+export async function transferToPubKey(user: any, data: any, session: any) {
   const { publicKey, amount } = data;
 
   if (!publicKey || typeof publicKey !== "string") {

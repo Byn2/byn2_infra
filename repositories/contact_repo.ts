@@ -37,7 +37,7 @@ export async function findContactByUserIdAndContactId(userId: string, contactId:
  * @param options - The options to pass to the underlying Model.save method.
  * @returns A promise that resolves to the saved contact document.
  */
-export async function storeContact(data, options = {}) {
+export async function storeContact(data: any, options = {}) {
   const contact = new Contacts(data);
   await contact.save(options);
 }

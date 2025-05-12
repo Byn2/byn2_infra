@@ -10,6 +10,8 @@ const projection = {
   fcm_token: 1,
   mobile_kyc_verified_at: 1,
   currency_id: 1,
+  bot_token: 1,
+  bot_session: 1,
 };
 
 /**
@@ -57,6 +59,15 @@ export async function findUserByTag(tag: string) {
   const user = await User.findOne({ tag: tag })
     .select(projection)
     .populate("currency_id");
+  return user;
+}
+
+export async function findUserByTagOrMobile(identifier) {
+  const user = await User.findOne({
+    $or: [{ tag: identifier }, { mobile_number: identifier }],
+  })
+    .select(projection)
+    .populate('currency_id');
   return user;
 }
 

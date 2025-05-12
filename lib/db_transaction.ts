@@ -8,13 +8,13 @@ export async function startTransaction() {
 }
 
 // Function to commit a transaction
-export async function commitTransaction(session) {
+export async function commitTransaction(session: any) {
   await session.commitTransaction();
   session.endSession();
 }
 
 // Function to abort a transaction
-export async function abortTransaction(session) {
+export async function abortTransaction(session: any) {
   await session.abortTransaction();
   session.endSession();
 }

@@ -29,7 +29,7 @@ export async function fetchNotifications(id: string, tableName: string, limit: n
  * @param options - The options to pass to the underlying Model.save method.
  * @returns A promise that resolves to the saved notification document.
  */
-export async function storeNotification(data, options = {}) {
+export async function storeNotification(data: any, options = {}) {
   const notification = new Notification(data);
   await notification.save(options);
 }

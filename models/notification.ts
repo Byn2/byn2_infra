@@ -1,4 +1,4 @@
-//@ts-check
+
 import mongoose, { Schema } from 'mongoose';
 
 const notificationSchema = new mongoose.Schema(

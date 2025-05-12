@@ -1,15 +1,14 @@
 
 import { NextResponse } from "next/server";
+import * as whatsappBot from "@/services/whatsapp_service"
 
 export async function POST(request: Request) {
 
   const body = await request.json();
 
-//   const session = await startTransaction();
-
   try {
    
-    console.log(body)
+    const res = await whatsappBot.init(body);
 
     return NextResponse.json({ message: "Success" }, { status: 200 });
 

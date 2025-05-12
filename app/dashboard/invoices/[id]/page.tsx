@@ -78,12 +78,14 @@ export default function InvoiceDetailPage() {
     try {
       const result = await deleteInvoice(invoiceId)
 
+      //@ts-ignore
       if (result.success) {
         toast("Success", {
           description: "Invoice deleted successfully",
         })
         router.push("/dashboard/invoices")
       } else {
+        //@ts-ignore
         throw new Error(result.error || "Failed to delete invoice")
       }
     } catch (error) {

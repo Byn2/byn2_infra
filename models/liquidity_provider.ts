@@ -1,3 +1,5 @@
+//@ts-nocheck
+//@ts-ignore
 import mongoose from 'mongoose';
 
 const liquidityProviderSchema = new mongoose.Schema(

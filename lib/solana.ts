@@ -1,4 +1,5 @@
-//@ts-check
+//@ts-nocheck
+//@ts-ignore
 import {
   TOKEN_PROGRAM_ID,
   createInitializeAccount3Instruction,

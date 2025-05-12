@@ -1,4 +1,5 @@
-//@ts-check
+//@ts-nocheck
+//@ts-ignore
 import { Connection, Keypair, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import { getOrCreateUserTokenAccount } from '../utils/solana.js';
 

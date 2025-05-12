@@ -44,7 +44,7 @@ export async function fetchLiquidityProviderByUserIdAndStatus(
   }).select(projection);
 }
 
-export async function createLiquidityProvider(data, options = {}) {
+export async function createLiquidityProvider(data: any, options = {}) {
   try {
     const liquidityProvider = new LiquidityProvider(data);
     return await liquidityProvider.save(options);
@@ -53,7 +53,7 @@ export async function createLiquidityProvider(data, options = {}) {
   }
 }
 
-export async function updateLiquidityProvider(id: string, data, options = {}) {
+export async function updateLiquidityProvider(id: string, data: any, options = {}) {
   console.log('Updating liquidity provider...');
   const liquidityProvider = await LiquidityProvider.findByIdAndUpdate(
     id,

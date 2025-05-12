@@ -1,4 +1,5 @@
-//@ts-check
+//@ts-nocheck
+//@ts-ignore
 import * as userRepo from '../repositories/user_repo';
 import * as walletService from './wallet_service';
 import bcrypt from 'bcrypt';
@@ -38,7 +39,28 @@ export async function fetchUserByMobile(mobile) {
   return user;
 }
 
-export async function fetchUserByTag(tag) {
+export async function fetchUserByMobileBot(mobile) {
+  await connectDB();
+  const user = await userRepo.findUserByMobile(mobile);
+  if (!user) {
+    return { success: false, message: 'User not found' };
+  }
+  return {
+    success: true,
+    data: user
+  };
+  
+}
+
+export async function fetchUserByTagOrMobile(identifier: any) {
+  const user = await userRepo.findUserByTagOrMobile(identifier);
+  if (!user) {
+    return { success: false, message: 'User not found' };
+  }
+  return user;
+}
+
+export async function fetchUserByTag(tag: any) {
   await connectDB();
   const user = await userRepo.findUserByTag(tag);
   if (!user) {

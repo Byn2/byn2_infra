@@ -9,12 +9,12 @@ import {
   notifyFundRequestStatus,
 } from '../notifications/fcm_notification.js';
 
-export async function fetchById(id) {
+export async function fetchById(id: any) {
   const fundRequest = await fundRequestRepo.fetchById(id);
   return fundRequest;
 }
 
-export async function fetchByFromIDOrToID(user) {
+export async function fetchByFromIDOrToID(user: any) {
   const currency_code = await currencyService.getCurrency(user);
   const fundRequests = await fundRequestRepo.fetchByFromIDOrToID(user._id);
 
@@ -36,7 +36,7 @@ export async function fetchByFromIDOrToID(user) {
   return convertedRequests;
 }
 
-export async function storeFundRequest(user, data, session) {
+export async function storeFundRequest(user: any, data: any, session: any) {
   const { tag, amount, reason } = data;
 
   if (!tag || typeof tag !== 'string' || isNaN(amount) || amount <= 0) {
@@ -77,7 +77,7 @@ export async function storeFundRequest(user, data, session) {
   return { success: true, message: 'Fund request sent successfully' };
 }
 
-export async function updateFundRequest(user, data, session) {
+export async function updateFundRequest(user: any, data: any, session: any) {
   const { id, status } = data;
   
   const fundRequest = await fundRequestRepo.fetchById(id);
@@ -142,13 +142,13 @@ export async function updateFundRequest(user, data, session) {
       session
     );
     //send push notification
-    await notifyFundRequestStatus(
-      user,
-      sender,
-      fundRequest.amount,
-      userCurrency,
-      'ignored'
-    );
+    // await notifyFundRequestStatus(
+    //   user,
+    //   sender,
+    //   fundRequest.amount,
+    //   userCurrency,
+    //   'ignored'
+    // );
     return { success: true, message: 'Request ignored' };
   }
 }

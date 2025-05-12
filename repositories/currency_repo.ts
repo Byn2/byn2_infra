@@ -7,7 +7,7 @@ import Currency from "../models/currency";
  * @returns {String} The currency code
  * @throws {Object} If the currency is not found
  */
-export async function getCurrency(user) {
+export async function getCurrency(user: any) {
   const currency = await Currency.findOne({ _id: user.currency_id });
   if (!currency) {
     throw { status: 404, message: "Currency not found" };
@@ -23,7 +23,7 @@ export async function getCurrency(user) {
  * @returns {Promise<Object>} The saved currency document.
  */
 
-export async function storeCurrency(data, options = {}) {
+export async function storeCurrency(data: any, options = {}) {
   const currency = new Currency(data);
   return await currency.save(options);
 }

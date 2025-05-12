@@ -9,12 +9,12 @@ const projection = {
   total: 1,
 };
 
-export async function storeInvoiceItem(data, options = {}) {
+export async function storeInvoiceItem(data: any, options = {}) {
   const invoiceItem = new InvoiceItem(data);
   return await invoiceItem.save(options);
 }
 
-export async function createOrUpdateInvoiceItem(data, options = {}) {
+export async function createOrUpdateInvoiceItem(data: any, options = {}) {
   if (data._id) {
     return await InvoiceItem.findByIdAndUpdate(data._id, data, {
       new: true,

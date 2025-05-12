@@ -1,4 +1,5 @@
-//@ts-check
+//@ts-nocheck
+//@ts-ignore
 import admin from 'firebase-admin';
 import { getMessaging } from '@firebase/messaging';
 

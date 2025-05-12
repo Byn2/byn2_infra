@@ -11,12 +11,12 @@ const projection = {
   timestamp: 1,
 };
 
-export async function storeLPUsageLog(data, options = {}) {
+export async function storeLPUsageLog(data: any, options = {}) {
   const lpUsageLog = new LPUsageLog(data);
   return await lpUsageLog.save(options);
 }
 
-export async function createOrUpdateLPUsageLog(data, options = {}) {
+export async function createOrUpdateLPUsageLog(data: any, options = {}) {
   try {
     if (data._id) {
       // Update an existing record with upsert enabled.

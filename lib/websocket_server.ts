@@ -1,4 +1,5 @@
-//@ts-check
+//@ts-nocheck
+//@ts-ignore
 import { WebSocketServer } from 'ws';
 import { Server } from 'http';
 

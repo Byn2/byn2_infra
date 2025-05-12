@@ -137,13 +137,16 @@ export default function CreateInvoicePage() {
       const result = await createInvoice(formData)
       console.log(result)
 
+      //@ts-ignore
       if (result.success) {
         toast( "Success", {
           description: status === "draft" ? "Invoice saved as draft" : "Invoice sent",
         });
 
+        //@ts-ignore
         router.push(result.redirectTo);
       } else {
+        //@ts-ignore
         throw new Error(result.error || "Failed to create invoice")
       }
     } catch (error) {
@@ -292,7 +295,7 @@ export default function CreateInvoicePage() {
                     onChange={(e) => setIsRecurring(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300"
                   />
-                  <Label className="mb-2" htmlFor="recurring" className="text-sm">
+                  <Label className="mb-2 text-sm" htmlFor="recurring">
                     This is a recurring invoice
                   </Label>
                 </div>

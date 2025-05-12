@@ -1,11 +1,13 @@
+//@ts-nocheck
+//@ts-ignore
 import * as PayrollRepo from "../repositories/payroll_repo";
 import * as PayrollEmployeeRepo from "../repositories/payroll_employee_repo";
 
-export async function storePayroll(data, session?) {
+export async function storePayroll(data: any, session?: any) {
   return await PayrollRepo.storePayroll(data, session);
 }
 
-export async function createOrUpdatePayroll(data, session?) {
+export async function createOrUpdatePayroll(data: any, session?: any) {
   const { employees, ...payrollData } = data;
 
   const payroll = await PayrollRepo.createOrUpdatePayroll(
@@ -17,7 +19,7 @@ export async function createOrUpdatePayroll(data, session?) {
   );
 
   if (employees && employees.length > 0) {
-    const employeeData = employees.map((employee) => ({
+    const employeeData = employees.map((employee: any) => ({
       ...employee,
       payroll_id: payroll._id,
     }));

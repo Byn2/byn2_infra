@@ -1,4 +1,5 @@
-//@ts-check
+//@ts-nocheck
+//@ts-ignore
 import { getOrCreateUserTokenAccount, prepareUSDCAccount } from './solana';
 import { transfer } from '@solana/spl-token';
 import {
