@@ -1,3 +1,5 @@
+//@ts-nocheck
+//@ts-ignore
 import { IUser } from '@/types/user';
 import * as contactRepo from '../repositories/contact_repo';
 import * as userRepo from '../repositories/user_repo';

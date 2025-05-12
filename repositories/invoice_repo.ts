@@ -24,12 +24,12 @@ const projection = {
 };
 
 
-export async function storeInvoice(data, options = {}) {
+export async function storeInvoice(data: any, options = {}) {
   const invoice = new Invoice(data);
   return await invoice.save(options);
 }
 
-export async function createOrUpdateInvoice(data, options = {}) {
+export async function createOrUpdateInvoice(data: any, options = {}) {
   console.log("update", data);
   if (data._id) {
     return await Invoice.findByIdAndUpdate(data._id, data, {

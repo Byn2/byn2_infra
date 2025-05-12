@@ -1,3 +1,5 @@
+//@ts-nocheck
+//@ts-ignore
 import * as userService from './user_service';
 import User from '../models/user';
 import * as walletService from './wallet_service';

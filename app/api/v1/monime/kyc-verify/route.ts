@@ -17,11 +17,12 @@ export async function POST(request: Request) {
   const session = await startTransaction();
 
   try {
-    const result = await monimeService.kycVerify(auth.user, number, session);
+    
+    //const result = await monimeService.kycVerify(auth.user, number, session);
 
-    await commitTransaction(session);
+    //await commitTransaction(session);
 
-    return NextResponse.json({message: result.success },{ status: 201 });
+    //return NextResponse.json({message: result.success },{ status: 201 });
   } catch (error) {
     await abortTransaction(session);
     return NextResponse.json(

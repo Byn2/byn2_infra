@@ -17,12 +17,12 @@ const projection = {
   updatedAt: 1,
 };
 
-export async function storePayroll(data, options = {}) {
+export async function storePayroll(data: any, options = {}) {
   const payroll = new Payroll(data);
   return await payroll.save(options);
 }
 
-export async function createOrUpdatePayroll(data, options = {}) {
+export async function createOrUpdatePayroll(data: any, options = {}) {
   if (data.payroll_id) {
     return await Payroll.findByIdAndUpdate(data.payroll_id, data, {
       new: true,

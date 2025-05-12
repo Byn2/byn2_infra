@@ -22,6 +22,16 @@ const botIntentSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    payer: {
+      type: String,
+      enum: ['self', 'different_number'],
+      default: null,
+    },
+    currency: {
+      type: String,
+      enum: ['local', 'usd'],
+      default: null,
+    },
     number: {
       type: String,
       default: null,

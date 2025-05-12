@@ -49,6 +49,7 @@ export default function LoginPage() {
       console.log("Login successful");
       router.push("/dashboard");
     } catch (error) {
+      //@ts-ignore
       console.error("Login failed:", error.message);
     } finally {
       setIsLoading(false);

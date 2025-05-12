@@ -63,7 +63,7 @@ export async function fetchById(id: string) {
  * @param {object} [options={}] - Optional settings for storing the fund request.
  * @returns {Promise<void>} - A promise that resolves when the fund request has been stored.
  */
-export async function storeFundRequest(data, options = {}) {
+export async function storeFundRequest(data: any, options = {}) {
   const fundRequest = new FundRequest(data);
   await fundRequest.save(options);
 }
@@ -76,7 +76,7 @@ export async function storeFundRequest(data, options = {}) {
  * @param {object} [options={}] - Optional settings for updating the fund request.
  * @returns {Promise<FundRequest>} - A promise that resolves to the updated fund request.
  */
-export async function updateFundRequest(id: string, data, options = {}) {
+export async function updateFundRequest(id: string, data: any, options = {}) {
   const fundRequest = await FundRequest.findByIdAndUpdate(id, data, {
     new: true,
     ...options,

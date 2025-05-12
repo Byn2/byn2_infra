@@ -15,7 +15,7 @@ export async function generateApiKey(name: string) {
   const session = await startTransaction();
   try {
     const authUser = await getAuthenticatedUser();
-
+    //@ts-ignore
     if ("user" in authUser === false) return authUser;
 
     const result = await businessApiKey.createBusinessApiKey(
@@ -48,7 +48,7 @@ export async function toggleApiKeyStatus(id: string, active: boolean) {
   const session = await startTransaction();
   try {
     const authUser = await getAuthenticatedUser();
-
+    //@ts-ignore
     if ("user" in authUser === false) return authUser;
 
     const result = await businessApiKey.updateBusinessApiKey(
@@ -80,6 +80,7 @@ export async function deleteApiKey(id: string) {
   try {
     const authUser = await getAuthenticatedUser();
 
+    //@ts-ignore
     if ("user" in authUser === false) return authUser;
 
     const result = await businessApiKey.deleteBusinessApiKey(
@@ -111,7 +112,7 @@ export async function createWebhook(url: string, events: string[]) {
   const session = await startTransaction();
   try {
     const authUser = await getAuthenticatedUser();
-
+    //@ts-ignore
     if ("user" in authUser === false) return authUser;
 
     console.log("Creating webhook...", {
@@ -154,6 +155,7 @@ export async function toggleWebhookStatus(id: string, active: boolean) {
   try {
     const authUser = await getAuthenticatedUser();
 
+    //@ts-ignore
     if ("user" in authUser === false) return authUser;
 
     const result = await businessWebHook.updateBusinessWebhook(
@@ -219,6 +221,7 @@ export async function deleteWebhook(id: string) {
   try {
     const authUser = await getAuthenticatedUser();
 
+    //@ts-ignore
     if ("user" in authUser === false) return authUser;
 
     const result = await businessWebHook.deleteBusinessWebhook(

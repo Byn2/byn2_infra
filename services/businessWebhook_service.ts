@@ -20,7 +20,7 @@ export async function getBusinessWebhookByBusinessIdAndUrl(
   );
 }
 
-export async function createBusinessWebhook(data, session) {
+export async function createBusinessWebhook(data: any, session: any) {
   const { business_id } = data;
 
   const user = await userService.fetchUserById(business_id);
@@ -40,7 +40,7 @@ export async function createBusinessWebhook(data, session) {
   return await businessWebhook.createBusinessWebhook(data, session);
 }
 
-export async function updateBusinessWebhook(id, data, session) {
+export async function updateBusinessWebhook(id: any, data: any, session: any) {
   const { business_id } = data;
 
   const user = await userService.fetchUserById(business_id);
@@ -52,6 +52,6 @@ export async function updateBusinessWebhook(id, data, session) {
   return await businessWebhook.updateBusinessWebhook(id, data, session);
 }
 
-export async function deleteBusinessWebhook(id,data, session) {
+export async function deleteBusinessWebhook(id: any, data: any, session: any) {
   return await businessWebhook.deleteBusinessWebhook(id, session);
 }

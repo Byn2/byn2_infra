@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
     // Create a promise to handle the passport authentication
     const authResult = await new Promise((resolve, reject) => {
-      passport.authenticate("local-login", { session: false }, (err, data, info) => {
+      passport.authenticate("local-login", { session: false }, (err: any, data: any, info: any) => {
         if (err) return reject(err)
         if (!data) return reject(new Error(info?.message || "Authentication failed"))
         resolve(data)

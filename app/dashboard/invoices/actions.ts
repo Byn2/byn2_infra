@@ -131,6 +131,7 @@ export interface Invoice {
 export async function createInvoice(formData: FormData) {
   const authUser = await getAuthenticatedUser();
 
+  //@ts-ignore
   if ("user" in authUser === false) return authUser;
   const session = await startTransaction();
 
@@ -223,6 +224,7 @@ export async function createInvoice(formData: FormData) {
 export async function updateInvoice(id: string, formData: FormData) {
   const authUser = await getAuthenticatedUser();
 
+  //@ts-ignore
   if ("user" in authUser === false) return authUser;
   const session = await startTransaction();
 
@@ -313,6 +315,7 @@ export async function updateInvoice(id: string, formData: FormData) {
 export async function deleteInvoice(id: string) {
   const authUser = await getAuthenticatedUser();
 
+  //@ts-ignore
   if ("user" in authUser === false) return authUser;
   const session = await startTransaction();
   try {

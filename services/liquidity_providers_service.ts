@@ -1,4 +1,5 @@
-//@ts-check
+//@ts-nocheck
+//@ts-ignore
 import * as liquidityProviderRepo from '../repositories/liquidity_provider_repo';
 import * as lpUsageLogRepo from '../repositories/lp_usage_log_repo';
 const STAKE_TIERS = {

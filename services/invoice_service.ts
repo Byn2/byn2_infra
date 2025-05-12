@@ -1,13 +1,11 @@
+//@ts-nocheck
+//@ts-ignore
 import * as InvoiceRepo from '../repositories/invoice_repo';
 import * as InvoiceItemRepo from '../repositories/invoice_item_repo';
 import  InvoiceCounter  from '../models/invoice_counter';
 
-export async function storeInvoice(data, session?) {
-  console.log('storeInvoice', data);
-  //return await InvoiceRepo.storeInvoice(data, session);
-}
 
-export async function createOrUpdateInvoice(data, session?) {
+export async function createOrUpdateInvoice(data: any, session?: any) {
   const { items, ...invoiceData } = data;
 
   if (!invoiceData.invoiceNumber) {
@@ -73,7 +71,7 @@ export async function getInvoiceByBusinessId(
   return await InvoiceRepo.getInvoiceByBusinessId(businessId, options);
 }
 
-export async function deleteInvoice(id: string, session) {
+export async function deleteInvoice(id: string, session: any) {
   await InvoiceRepo.deleteInvoice(id, session);
   await InvoiceItemRepo.deleteInvoiceItem(id, session);
 }

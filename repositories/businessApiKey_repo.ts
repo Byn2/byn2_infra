@@ -21,12 +21,12 @@ export async function getBusinessApiKeyById(id: string) {
   return await BusinessApiKey.findById(id).select(projection);
 }
 
-export async function createBusinessApiKey(data, options = {}) {
+export async function createBusinessApiKey(data: any, options = {}) {
  const api = new BusinessApiKey(data);
  return await api.save(options);
 }
 
-export async function updateBusinessApiKey(id, data, options = {}) {
+export async function updateBusinessApiKey(id: any, data: any, options = {}) {
   return await BusinessApiKey.findByIdAndUpdate(id, data, {
     new: true,
     upsert: true,
@@ -34,7 +34,7 @@ export async function updateBusinessApiKey(id, data, options = {}) {
   });
 }
 
-export async function deleteBusinessApiKey(id, options = {}) {
+export async function deleteBusinessApiKey(id: any, options = {}) {
   return await BusinessApiKey.findByIdAndDelete(id, options);
 }
 

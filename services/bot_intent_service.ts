@@ -4,10 +4,10 @@ export async function getBotIntentBySession(session: String){
     return await BotIntentRepo.getBotIntentBySession(session);
 }
 
-export async function storeBotIntent(data: any, session){
+export async function storeBotIntent(data: any, session: any){
     return await BotIntentRepo.storeBotIntent(data, session);
 }
 
-export async function updateBotIntent(id, data: any, session){
+export async function updateBotIntent(id: any, data: any, session: any){
     return await BotIntentRepo.updateBotIntent(id, data, session);
 }

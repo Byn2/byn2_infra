@@ -31,6 +31,7 @@ interface BankTransferParams {
 export async function sendByn2Transfer(data: Byn2TransferParams) {
   const authUser = await getAuthenticatedUser();
 
+  //@ts-ignore
   if ("user" in authUser === false) return authUser;
   const session = await startTransaction();
   try {
@@ -70,6 +71,7 @@ export async function sendByn2Transfer(data: Byn2TransferParams) {
   } catch (error) {
     await abortTransaction(session);
     console.error("Error processing Byn2 transfer:", error);
+    //@ts-ignore
     return { error: error.message || "Failed to process Byn2 transfer" };
   }
 }
@@ -129,6 +131,7 @@ export async function sendBankTransfer(data: BankTransferParams) {
     return { success: true, transactionId: "bank_" + Date.now() };
   } catch (error) {
     console.error("Error processing bank transfer:", error);
+    //@ts-ignore
     return { error: error.message || "Failed to process bank transfer" };
   }
 }

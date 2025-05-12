@@ -28,12 +28,12 @@ export async function getBusinessWebhookByBusinessIdAndUrlAndSecret(businessId: 
   return await BusinessWebhook.findOne({ business_id: businessId, url, secret }, projection);
 }
 
-export async function createBusinessWebhook(data, options = {}) {
+export async function createBusinessWebhook(data: any, options = {}) {
   const webhook = new BusinessWebhook(data);
   return await webhook.save(options);
 }
 
-export async function updateBusinessWebhook(id, data, options = {}) {
+export async function updateBusinessWebhook(id: any, data: any, options = {}) {
   return await BusinessWebhook.findByIdAndUpdate(id, data, {
     new: true,
     upsert: true,
@@ -41,6 +41,6 @@ export async function updateBusinessWebhook(id, data, options = {}) {
   });
 }
 
-export async function deleteBusinessWebhook(id, options = {}) {
+export async function deleteBusinessWebhook(id: any, options = {}) {
   return await BusinessWebhook.findByIdAndDelete(id, options);
 }

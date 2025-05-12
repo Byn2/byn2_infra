@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 
 export async function getAuthenticatedUser() {
-  const token = cookies().get("auth_token")?.value;
+  const token = (await cookies()).get("auth_token")?.value;
 
   if (!token) {
     return null;

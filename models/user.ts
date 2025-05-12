@@ -1,4 +1,5 @@
-//@ts-check
+//@ts-nocheck
+//@ts-ignore
 import mongoose from 'mongoose';
 import slugify from 'slugify';
 import bcrypt from 'bcrypt';

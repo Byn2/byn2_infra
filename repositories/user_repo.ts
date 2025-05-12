@@ -62,6 +62,15 @@ export async function findUserByTag(tag: string) {
   return user;
 }
 
+export async function findUserByTagOrMobile(identifier) {
+  const user = await User.findOne({
+    $or: [{ tag: identifier }, { mobile_number: identifier }],
+  })
+    .select(projection)
+    .populate('currency_id');
+  return user;
+}
+
 /**
  * Checks if a user with the given tag exists.
  *

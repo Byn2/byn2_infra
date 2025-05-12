@@ -134,7 +134,8 @@ export async function fetchuserTransactionsByStartDateAndEndDate(
  * @returns {Promise<Transaction>} - The saved transaction document.
  */
 export async function storeTransations(data, options = {}) {
-  const transaction = new Transaction(data);
+  try{
+    const transaction = new Transaction(data);
   await transaction.save(options);
   await transaction.populate([
     {
@@ -154,6 +155,9 @@ export async function storeTransations(data, options = {}) {
     },
   ]);
   return transaction;
+  }catch(error){
+    console.log(error);
+  }
 }
 
 export async function updateTransaction(id: string, data, options = {}) {

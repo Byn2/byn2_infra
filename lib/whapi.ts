@@ -47,7 +47,7 @@ export async function sendImageMessage(phoneNumber: string, imageUrl: string) {
     }
 }
 
-export async function sendButtonMessage(payload) {
+export async function sendButtonMessage(payload: any) {
     try{
         const response = await fetch(whapiButtonUrl, {
             method: "POST",

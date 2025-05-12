@@ -1,4 +1,3 @@
-//@ts-check
 import mongoose, { Schema } from "mongoose";
 
 const OtpVerificationSchema = new Schema({
@@ -19,12 +18,20 @@ const TransactionSchema = new Schema(
     to_id: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "Recipient ID is required"],
     },
 
     // Core financials
     amount: { type: Number, required: true },
-    fee: { type: Number, default: 0 },
+    fee: {
+      amount: {
+        type: String,
+        default: '0',
+      },
+      currency: {
+        type: String,
+        default: 'USD',
+      },
+    },
     currency: { type: String, default: "USD" },
 
     // Transaction intent
@@ -79,7 +86,11 @@ const TransactionSchema = new Schema(
       enum: ["wallet", "bank", "crypto"],
       default: "wallet",
     },
-
+    platform: {
+      type: String,
+      enum: ["web", "mobile", "whatsapp",],
+      default: "web",
+    },
     // Exchange data (if cross-currency)
     exchange_rate: {
       from: { currency: String, amount: String },

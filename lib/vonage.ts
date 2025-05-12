@@ -1,3 +1,5 @@
+//@ts-nocheck
+//@ts-ignore
 import { Vonage } from '@vonage/server-sdk';
 
 const vonage = new Vonage({

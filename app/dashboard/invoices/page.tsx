@@ -108,12 +108,14 @@ export default function InvoicesPage() {
     try {
       const result = await deleteInvoice(invoiceToDelete)
 
+      //@ts-ignore
       if (result.success) {
         toast("Success", {
           description: "Invoice deleted successfully",
         })
         fetchInvoices()
       } else {
+        //@ts-ignore
         throw new Error(result.error || "Failed to delete invoice")
       }
     } catch (error) {

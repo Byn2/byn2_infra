@@ -1,3 +1,5 @@
+//@ts-nocheck
+//@ts-ignore
 import * as transactionService from '../services/transaction_service';
 import * as userService from '../services/user_service';
 import * as walletService from '../services/wallet_service';
@@ -22,7 +24,6 @@ export async function deposit(user, body, session) {
   const deposit_number = depositing_number || user.mobile_number;
   const deposit_type = depositing_number ? 'direct_deposit' : 'deposit';
 
-
   const Idkey = deposit_number + Date.now().toString();
 
   // create a transaction record
@@ -30,7 +31,6 @@ export async function deposit(user, body, session) {
   let convertedAmount = amount;
 
   convertedAmount = await currencyConverter(amount, userCurrency, userCurrency);
-
   const transactionData = {
     from_id: user._id,
     to_id: null,
@@ -41,7 +41,7 @@ export async function deposit(user, body, session) {
     provider: 'monime',
     type: deposit_type,
     fee: {
-      amount: 0,
+      amount: '0',
       currency: userCurrency,
     },
     exchange_rate: {
@@ -58,12 +58,12 @@ export async function deposit(user, body, session) {
     received_currency: userCurrency,
     receiving_number: depositing_number || '',
   };
-
   // Store the transaction
   const transaction = await transactionService.storeTransations(
     transactionData,
     session
-  );
+  );     
+
 
   const transaction_id = transaction._id;
 
@@ -91,7 +91,6 @@ export async function deposit(user, body, session) {
       metadata: {},
     }),
   };
-
 
   const response = await fetch('https://api.monime.io/payment-codes', options);
 

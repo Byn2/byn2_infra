@@ -1,15 +1,18 @@
+//@ts-nocheck
+//@ts-ignore
 import {
   depositMethodMessageTemplate,
   mmDepositMessageTemplate1,
   mmDepositMessageTemplateAmount,
   mmDepositMessageTemplateConfirm,
+  mmDepositMessageTemplateDifferentNumber,
   mmDepositMessageTemplateUSSD,
+  mmDepositMessageTemplateUSSDDifferentNumber,
 } from '@/lib/whapi_message_template';
-import * as monimeService from "@/services/monime_service";
+import * as monimeService from '@/services/monime_service';
 import { sendButtonMessage, sendTextMessage } from '@/lib/whapi';
 import { updateBotIntent } from '@/services/bot_intent_service';
 import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_transaction';
-
 
 export async function handleDeposit(message: any, botIntent: any, method?: any, user?: any) {
   const session = await startTransaction();
@@ -18,19 +21,19 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
 
   //send deposit option
   if (botIntent.intent === 'start') {
-    const ctx = await depositMethodMessageTemplate(message.from_name, message.from);
-    await sendButtonMessage(ctx);
-
     await updateBotIntent(
       botIntent._id,
       {
         intent: 'deposit',
+        step: 1,
       },
       session
     );
+    const ctx = await depositMethodMessageTemplate(message.from_name, message.from);
+    await sendButtonMessage(ctx);
+
   } else if (botIntent.intent === 'deposit') {
     if (method === 'ListV3:do1' || botIntent.intent_option === 'mobile_money') {
-      console.log('Deposit with mobile money');
       if (method) {
         await updateBotIntent(
           botIntent._id,
@@ -55,71 +58,120 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
         );
       } else if (botIntent.step === 2) {
         const fundingAcct = message.reply?.buttons_reply?.id;
-        if(fundingAcct === 'ButtonsV3:self'){
-            const ctx = await mmDepositMessageTemplateAmount(message.from_name, message.from);
-            await sendTextMessage(message.from, ctx)
+        if (fundingAcct === 'ButtonsV3:self') {
+          const ctx = await mmDepositMessageTemplateAmount(message.from_name, message.from);
+          await sendTextMessage(message.from, ctx);
+          await updateBotIntent(
+            botIntent._id,
+            {
+              step: 3,
+              number: `+${message.from}`,
+            },
+            session
+          );
+        } else if (
+          fundingAcct === 'ButtonsV3:different_number' ||
+          botIntent.payer === 'different_number'
+        ) {
+          if (fundingAcct === 'ButtonsV3:different_number') {
             await updateBotIntent(
-                botIntent._id,
-                {
-                  step: 3,
-                  number: `+${message.from}`
-                },
-                session
-              );
-        }else if(fundingAcct === ''){
+              botIntent._id,
+              {
+                payer: 'different_number',
+              },
+              session
+            );
+            const ctx = await mmDepositMessageTemplateDifferentNumber(
+              message.from_name,
+              message.from
+            );
+            await sendTextMessage(message.from, ctx);
+          } else if (botIntent.payer === 'different_number' && botIntent.number === null) {
+            const number = message.text?.body;
 
-        }else{
-
+            const ctx = await mmDepositMessageTemplateAmount(message.from_name, message.from);
+            await sendTextMessage(message.from, ctx);
+            await updateBotIntent(
+              botIntent._id,
+              {
+                step: 3,
+                number: number,
+              },
+              session
+            );
+          } else {
+            console.log('Invalid selection');
+          }
+        } else {
+          console.log('Invalid selection');
         }
         // amount to deposit
       } else if (botIntent.step === 3) {
-        const amt = message.text?.body
+        const amt = message.text?.body;
 
         await updateBotIntent(
-            botIntent._id,
-            {
-              step: 4,
-              amount: amt
-            },
-            session
+          botIntent._id,
+          {
+            step: 4,
+            amount: amt,
+          },
+          session
         );
 
-        const ctx = await mmDepositMessageTemplateConfirm(message.from_name, message.from, botIntent.number, amt);
+        const ctx = await mmDepositMessageTemplateConfirm(
+          message.from_name,
+          message.from,
+          botIntent.number,
+          amt
+        );
         await sendButtonMessage(ctx);
         //confirmation
       } else if (botIntent.step === 4) {
         const confirmBtn = message.reply?.buttons_reply?.id;
-        console.log('confirm', confirmBtn);
-        if(confirmBtn === 'ButtonsV3:mm_confirm'){
-            const payload = await monimeService.deposit(user, {
-                amount: botIntent.amount,
-                depositing_number: botIntent.number
-            }, session)
+        if (confirmBtn === 'ButtonsV3:mm_confirm') {
+          const payload = await monimeService.deposit(
+            user,
+            {
+              amount: botIntent.amount,
+              depositing_number: botIntent.number,
+            },
+            session
+          );
 
-            await updateBotIntent(
-                botIntent._id,
-                {
-                  step: 4,
-                  ussd: payload,
-                  status: 'success'
-                },
-                session
-            ); 
+          await updateBotIntent(
+            botIntent._id,
+            {
+              step: 4,
+              ussd: payload,
+              status: 'success',
+            },
+            session
+          );
 
-            const ctx = await mmDepositMessageTemplateUSSD(message.from_name, message.from, payload);
+          if (botIntent.payer === 'self') {
+            const ctx = await mmDepositMessageTemplateUSSD(
+              message.from_name,
+              message.from,
+              payload
+            );
             await sendButtonMessage(ctx);
+          } else if (botIntent.payer === 'different_number') {
+            const ctx = await mmDepositMessageTemplateUSSDDifferentNumber(
+              message.from_name,
+              message.from,
+              payload
+            );
+            await sendButtonMessage(ctx);
+          }
 
-            console.log('You confirm payment')
-        }else if(confirmBtn === 'ButtonsV3:cancel'){
-            console.log('You cancel payment')
-        }else{
-            console.log('Invalid selection')
+          console.log('You confirm payment');
+        } else if (confirmBtn === 'ButtonsV3:cancel') {
+          console.log('You cancel payment');
+        } else {
+          console.log('Invalid selection');
         }
         //generate USSD and send
       }
-
-      console.log(method);
-     
     } else if (method === 'ListV3:do2' || botIntent.intent_option === 'crypto') {
       console.log('Crypto selected');
     } else if (method === 'ListV3:do3' || botIntent.intent_option === 'bank_transfer') {

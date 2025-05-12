@@ -4,8 +4,10 @@ const projection = {
     bot_session : 1,
     intent: 1,
     intent_option: 1,
+    payer: 1,
     amount: 1,
     number: 1,
+    currency: 1,
     step: 1,
     status: 1,
 }
