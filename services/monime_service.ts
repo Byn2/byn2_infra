@@ -1,16 +1,16 @@
 //@ts-nocheck
 //@ts-ignore
-import * as transactionService from '../services/transaction_service';
-import * as userService from '../services/user_service';
-import * as walletService from '../services/wallet_service';
-import { convertToUSD, currencyConverter } from '@/lib/helpers';
-import * as currencyService from '../services/currency_service';
+import * as transactionService from "../services/transaction_service";
+import * as userService from "../services/user_service";
+import * as walletService from "../services/wallet_service";
+import { convertToUSD, currencyConverter } from "@/lib/helpers";
+import * as currencyService from "../services/currency_service";
 import {
   notifyTopUp,
   notifyTopUpFailure,
   notifyWithdrawal,
   notifyFailedWithdrawal,
-} from '../notifications/fcm_notification';
+} from "../notifications/fcm_notification";
 // import { walletUpdateSocket } from '../lib/websocket_server';
 // import lookupMobileOperator from 'mobile-operator-lookup';
 
@@ -22,7 +22,7 @@ export async function deposit(user, body, session) {
   const { amount, depositing_number } = body;
 
   const deposit_number = depositing_number || user.mobile_number;
-  const deposit_type = depositing_number ? 'direct_deposit' : 'deposit';
+  const deposit_type = depositing_number ? "direct_deposit" : "deposit";
 
   const Idkey = deposit_number + Date.now().toString();
 
@@ -36,12 +36,12 @@ export async function deposit(user, body, session) {
     to_id: null,
     amount: amount,
     currency: userCurrency,
-    reason: 'deposit',
-    status: 'pending',
-    provider: 'monime',
+    reason: "deposit",
+    status: "pending",
+    provider: "monime",
     type: deposit_type,
     fee: {
-      amount: '0',
+      amount: "0",
       currency: userCurrency,
     },
     exchange_rate: {
@@ -50,49 +50,48 @@ export async function deposit(user, body, session) {
         amount: amount,
       },
       to: {
-        currency: 'USD',
+        currency: "USD",
         amount: convertedAmount,
       },
     },
     amount_received: convertedAmount,
     received_currency: userCurrency,
-    receiving_number: depositing_number || '',
+    receiving_number: depositing_number || "",
   };
   // Store the transaction
   const transaction = await transactionService.storeTransations(
     transactionData,
     session
-  );     
-
+  );
 
   const transaction_id = transaction._id;
 
   const options = {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Monime-Space-Id': monime_space_id,
-      'Idempotency-Key': Idkey,
-      'Content-Type': 'application/json',
+      "Monime-Space-Id": monime_space_id,
+      "Idempotency-Key": Idkey,
+      "Content-Type": "application/json",
       Authorization: `Bearer ${monime_api_key}`,
     },
     body: JSON.stringify({
-      name: 'Deposit - Byn2',
-      mode: 'oneTime',
+      name: "Deposit - Byn2",
+      mode: "oneTime",
       isActive: true,
-      amount: { currency: 'SLE', value: body.amount * 100 },
-      duration: '1h30m',
+      amount: { currency: "SLE", value: body.amount * 100 },
+      duration: "1h30m",
       customerTarget: {
         name: user.name,
         reference: transaction_id,
         payingPhoneNumber: deposit_number,
       },
 
-      allowedProviders: ['m17', 'm18'],
+      allowedProviders: ["m17", "m18"],
       metadata: {},
     }),
   };
 
-  const response = await fetch('https://api.monime.io/payment-codes', options);
+  const response = await fetch("https://api.monime.io/payment-codes", options);
 
   const data = await response.json();
 
@@ -113,7 +112,6 @@ export async function generateUSSDCode(user, body, session) {
 
   const deposit_number = depositing_number || user.mobile_number;
 
-
   const Idkey = deposit_number + Date.now().toString();
 
   // let convertedAmount = amount;
@@ -123,32 +121,31 @@ export async function generateUSSDCode(user, body, session) {
   const transaction = await transactionService.fetchByID(transaction_id);
 
   const options = {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Monime-Space-Id': monime_space_id,
-      'Idempotency-Key': Idkey,
-      'Content-Type': 'application/json',
+      "Monime-Space-Id": monime_space_id,
+      "Idempotency-Key": Idkey,
+      "Content-Type": "application/json",
       Authorization: `Bearer ${monime_api_key}`,
     },
     body: JSON.stringify({
-      name: 'Deposit - Byn2',
-      mode: 'oneTime',
+      name: "Deposit - Byn2",
+      mode: "oneTime",
       isActive: true,
-      amount: { currency: 'SLE', value: transaction.amount * 100 },
-      duration: '1h30m',
+      amount: { currency: "SLE", value: transaction.amount * 100 },
+      duration: "1h30m",
       customerTarget: {
         name: user.name,
         reference: transaction._id,
         payingPhoneNumber: deposit_number,
       },
 
-      allowedProviders: ['m17', 'm18'],
+      allowedProviders: ["m17", "m18"],
       metadata: {},
     }),
   };
 
-
-  const response = await fetch('https://api.monime.io/payment-codes', options);
+  const response = await fetch("https://api.monime.io/payment-codes", options);
 
   const data = await response.json();
 
@@ -245,7 +242,7 @@ export async function withdraw(user, body, session) {
   const { amount, receiving_number } = body;
 
   const withdraw_number = receiving_number || user.mobile_number;
-  const withdraw_type = receiving_number ? 'direct_transfer' : 'withdraw';
+  const withdraw_type = receiving_number ? "direct_transfer" : "withdraw";
   const Idkey = withdraw_number + Date.now().toString();
 
   // Get user's currency
@@ -262,18 +259,18 @@ export async function withdraw(user, body, session) {
     to_id: null,
     amount,
     currency: userCurrency,
-    reason: 'withdraw',
-    status: 'pending', // Initially set as pending
-    provider: 'monime',
+    reason: "withdraw",
+    status: "pending", // Initially set as pending
+    provider: "monime",
     type: withdraw_type,
     fee: { amount: 0, currency: userCurrency },
     exchange_rate: {
       from: { currency: userCurrency, amount },
-      to: { currency: 'USD', amount: convertedAmount },
+      to: { currency: "USD", amount: convertedAmount },
     },
     amount_received: convertedAmount,
     received_currency: userCurrency,
-    receiving_number: receiving_number || '',
+    receiving_number: receiving_number || "",
   };
 
   // Store the transaction
@@ -285,31 +282,31 @@ export async function withdraw(user, body, session) {
 
   try {
     // Withdraw USDC from the user's account
-    await walletService.withdraw(user, { amount }, session, 'pending');
+    await walletService.withdraw(user, { amount }, session, "pending");
 
     const options = {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Monime-Space-Id': monime_space_id,
-        'Idempotency-Key': Idkey,
-        'Content-Type': 'application/json',
+        "Monime-Space-Id": monime_space_id,
+        "Idempotency-Key": Idkey,
+        "Content-Type": "application/json",
         Authorization: `Bearer ${monime_api_key}`,
       },
       body: JSON.stringify({
-        amount: { currency: 'SLE', value: body.amount * 100 },
-        destination: { providerCode: 'm17', accountId: withdraw_number },
+        amount: { currency: "SLE", value: body.amount * 100 },
+        destination: { providerCode: "m17", accountId: withdraw_number },
         metadata: { transactionId: transaction_id },
       }),
     };
 
-    const response = await fetch('https://api.monime.io/payouts', options);
+    const response = await fetch("https://api.monime.io/payouts", options);
     const data = await response.json();
 
     if (data.success) {
       // Update transaction status to completed
       await transactionService.updateTransaction(
         transaction_id,
-        { status: 'completed' },
+        { status: "completed" },
         session
       );
       if (receiving_number === null) {
@@ -319,18 +316,18 @@ export async function withdraw(user, body, session) {
       // Update transaction status to failed
       await transactionService.updateTransaction(
         transaction_id,
-        { status: 'failed' },
+        { status: "failed" },
         session
       );
 
       await notifyFailedWithdrawal(user, amount, transaction.currency, session);
     }
   } catch (error) {
-    console.error('Withdrawal failed:', error);
+    console.error("Withdrawal failed:", error);
     // Update transaction status to failed in case of an error
     await transactionService.updateTransaction(
       transaction_id,
-      { status: 'failed' },
+      { status: "failed" },
       session
     );
   }
@@ -348,7 +345,7 @@ export async function webhook(body, session) {
   const user = await userService.fetchUserById(txt.from_id);
 
   if (txt) {
-    if (status === 'completed' && txt.status !== 'completed') {
+    if (status === "completed" && txt.status !== "completed") {
       await walletService.deposit(user, { amount }, session, status);
 
       //update the transaction
@@ -359,20 +356,20 @@ export async function webhook(body, session) {
       );
       //send push notification
 
-      console.log('Make teh websocket:', user._d);
+      console.log("Make teh websocket:", user._d);
 
       // await walletUpdateSocket(user._d, { amount: 0, recipient: 0 });
 
-      console.log('Make the notification after web socket');
+      console.log("Make the notification after web socket");
 
       await notifyTopUp(user, amount, txt.currency, session);
-    } else if (status === 'processing' && txt.status == 'pending') {
+    } else if (status === "processing" && txt.status == "pending") {
       await transactionService.updateTransaction(
         txt._id,
         { status: status },
         session
       );
-    } else if (status === 'failed' || status === 'expired') {
+    } else if (status === "failed" || status === "expired") {
       await transactionService.updateTransaction(
         txt._id,
         { status: status },
@@ -383,12 +380,12 @@ export async function webhook(body, session) {
     } else {
       await transactionService.updateTransaction(
         txt._id,
-        { status: status },
+        { status: sta3tus },
         session
       );
     }
   } else {
-    console.log('No transaction found');
+    console.log("No transaction found");
   }
 }
 
