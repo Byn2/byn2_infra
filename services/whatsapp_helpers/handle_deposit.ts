@@ -11,6 +11,15 @@ import * as monimeService from '@/services/monime_service';
 import { sendButtonMessage, sendTextMessage } from '@/lib/whapi';
 import { updateBotIntent } from '@/services/bot_intent_service';
 import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_transaction';
+import {
+  isValidAmount,
+  isValidPhoneNumber,
+  extractButtonId,
+  extractListId,
+  extractTextInput,
+  sendValidationError,
+  handleInvalidInput
+} from '@/lib/whatsapp_utils';
 
 export async function handleDeposit(message: any, botIntent: any, method?: any, user?: any) {
   const session = await startTransaction();
@@ -54,7 +63,7 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
           session
         );
       } else if (botIntent.step === 2) {
-        const fundingAcct = message.reply?.buttons_reply?.id;
+        const fundingAcct = extractButtonId(message);
         if (fundingAcct === 'ButtonsV3:self') {
           const ctx = await mmDepositMessageTemplateAmount();
           await sendTextMessage(message.from, ctx);
@@ -82,7 +91,12 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
             const ctx = await mmDepositMessageTemplateDifferentNumber();
             await sendTextMessage(message.from, ctx);
           } else if (botIntent.payer === 'different_number' && botIntent.number === null) {
-            const number = message.text?.body;
+            const number = extractTextInput(message);
+            
+            if (!number || !isValidPhoneNumber(number)) {
+              await sendValidationError('phone', message.from);
+              return;
+            }
 
             const ctx = await mmDepositMessageTemplateAmount();
             await sendTextMessage(message.from, ctx);
@@ -95,14 +109,19 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
               session
             );
           } else {
-            console.log('Invalid selection');
+            await handleInvalidInput(message, 'button');
           }
         } else {
-          console.log('Invalid selection');
+          await handleInvalidInput(message, 'button');
         }
         // amount to deposit
       } else if (botIntent.step === 3) {
-        const amt = message.text?.body;
+        const amt = extractTextInput(message);
+
+        if (!amt || !isValidAmount(amt)) {
+          await sendValidationError('amount', message.from);
+          return;
+        }
 
         await updateBotIntent(
           botIntent._id,
@@ -122,7 +141,7 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
         await sendButtonMessage(ctx);
         //confirmation
       } else if (botIntent.step === 4) {
-        const confirmBtn = message.reply?.buttons_reply?.id;
+        const confirmBtn = extractButtonId(message);
         console.log('confirmBtn', confirmBtn);
         if (confirmBtn === 'ButtonsV3:mm_confirm') {
           const payload = await monimeService.deposit(
@@ -155,8 +174,17 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
           console.log('You confirm payment');
         } else if (confirmBtn === 'ButtonsV3:cancel') {
           console.log('You cancel payment');
+          // Reset to main menu after cancel
+          await updateBotIntent(
+            botIntent._id,
+            {
+              intent: 'start',
+              step: 0,
+            },
+            session
+          );
         } else {
-          console.log('Invalid selection');
+          await handleInvalidInput(message, 'button');
         }
         //generate USSD and send
       }
