@@ -1,14 +1,12 @@
-//@ts-nocheck
-//@ts-ignore
 import * as userService from './user_service';
 import User from '../models/user';
 import * as walletService from './wallet_service';
 import * as currencyService from './currency_service';
 import { getCountryCurrency } from '../lib/helpers';
- import bcrypt from 'bcrypt';
- import { sendSMSNotification } from '../notifications/sms_notification';
+import bcrypt from 'bcrypt';
+import { sendSMSNotification } from '../notifications/sms_notification';
 // import { kycVerify } from './monime_service.js';
-import {connectDB} from '../lib/db'
+import { connectDB } from '../lib/db';
 
 /**
  * Registers a new user.
@@ -54,12 +52,8 @@ export async function registerUser(data, session) {
     session
   );
 
-
   //send verification code
-  await sendSMSNotification(
-    user.mobile_number,
-    `B-${code} is your verification code.`
-  );
+  await sendSMSNotification(user.mobile_number, `B-${code} is your verification code.`);
 
   const updatedUser = await userService.updateUser(
     user._id,
@@ -86,11 +80,9 @@ export async function registerUser(data, session) {
  * @returns {Promise<{ success: boolean, error?: string, user?: User}>} - The user document if authentication was successful, or an error message if not.
  */
 export async function loginUser(data) {
-
   await connectDB();
- 
-  const { email, password } = data;
 
+  const { email, password } = data;
 
   const user = await User.findOne({ mobile_number: email });
 
@@ -109,22 +101,24 @@ export async function loginUser(data) {
   return { success: true, user };
 }
 
-export async function OtpLogin(email, session){
+export async function OtpLogin(email, session) {
   await connectDB();
 
-  let user = await User.findOne({ mobile_number: email })
-  
- 
+  let user = await User.findOne({ mobile_number: email });
+
   if (!user) {
     const defaultName = email;
     console.log(defaultName);
     //const defaultTag = slugify(defaultName, { lower: true, strict: true });
     const country_details = await getCountryCurrency('SL'); // or dynamic if available
-    const currency = await currencyService.storeCurrency({
-      code: country_details.code,
-      name: country_details.name,
-      symbol: country_details.symbol,
-    }, session);
+    const currency = await currencyService.storeCurrency(
+      {
+        code: country_details.code,
+        name: country_details.name,
+        symbol: country_details.symbol,
+      },
+      session
+    );
 
     user = await userService.storeUser(
       {
@@ -146,10 +140,7 @@ export async function OtpLogin(email, session){
   await user.save();
 
   // Send OTP via SMS
-  await sendSMSNotification(
-    user.mobile_number,
-    `B-${otp} is your login code.`
-  );
+  await sendSMSNotification(user.mobile_number, `B-${otp} is your login code.`);
 
   const updatedUser = await userService.updateUser(
     user._id,
@@ -167,28 +158,30 @@ export async function OtpLogin(email, session){
   return updatedUser;
 }
 
-export async function botLogin(data, session){
+export async function botLogin(data, session) {
   await connectDB();
 
   const country_details = await getCountryCurrency('SL'); // or dynamic if available
-    const currency = await currencyService.storeCurrency({
+  const currency = await currencyService.storeCurrency(
+    {
       code: country_details.code,
       name: country_details.name,
       symbol: country_details.symbol,
-    }, session);
+    },
+    session
+  );
 
-    const user = await userService.storeUser(
-      {
-        name: data.name,
-        mobile_number: data.mobile_number,
-        auth_provider: 'custom',
-        currency_id: currency._id,
-        bot_token: data.bot_token,
-        bot_session: data.bot_session,
-      },
-      session
-    );
-  
+  const user = await userService.storeUser(
+    {
+      name: data.name,
+      mobile_number: data.mobile_number,
+      auth_provider: 'custom',
+      currency_id: currency._id,
+      bot_token: data.bot_token,
+      bot_session: data.bot_session,
+    },
+    session
+  );
 
   // Generate OTP
   const otp = Math.floor(100000 + Math.random() * 900000);
@@ -233,10 +226,10 @@ export async function verifyOTP(user, data, session) {
     return await handleInvalidCode(user, session);
   }
 
-  const secondsOfValidation = process.env.MOBILE_SECONDS_OF_VALIDATION;
+  const secondsOfValidation = parseInt(process.env.MOBILE_SECONDS_OF_VALIDATION || '300');
   const verifyCodeSentAt = new Date(user.mobile_verify_code_sent_at);
   const currentTime = new Date();
-  const diffInSeconds = Math.floor((currentTime - verifyCodeSentAt) / 1000);
+  const diffInSeconds = Math.floor((currentTime.getTime() - verifyCodeSentAt.getTime()) / 1000);
 
   if (diffInSeconds > secondsOfValidation) {
     return await handleExpiredCode(user, session);
@@ -272,9 +265,7 @@ async function handleInvalidCode(user, session) {
 
   return {
     success: false,
-    message: `Invalid verification code. You have ${
-      attemptsLeft - 1
-    } attempts left.`,
+    message: `Invalid verification code. You have ${attemptsLeft - 1} attempts left.`,
   };
 }
 
@@ -310,10 +301,7 @@ export async function sendNewOtp(number: string, session) {
     return { success: false, message: 'Phone number not found.' };
   }
 
-  await sendSMSNotification(
-    user.mobile_number,
-    `B-${code} is your verification code.`
-  );
+  await sendSMSNotification(user.mobile_number, `B-${code} is your verification code.`);
 
   await userService.updateUser(
     user._id,
@@ -346,10 +334,10 @@ export async function resetPwdOTPVerify(number, code, session) {
     return await handleInvalidCode(user, session);
   }
 
-  const secondsOfValidation = process.env.MOBILE_SECONDS_OF_VALIDATION;
+  const secondsOfValidation = parseInt(process.env.MOBILE_SECONDS_OF_VALIDATION || '300');
   const verifyCodeSentAt = new Date(user.mobile_verify_code_sent_at);
   const currentTime = new Date();
-  const diffInSeconds = Math.floor((currentTime - verifyCodeSentAt) / 1000);
+  const diffInSeconds = Math.floor((currentTime.getTime() - verifyCodeSentAt.getTime()) / 1000);
 
   if (diffInSeconds > secondsOfValidation) {
     return await handleExpiredCode(user, session);
@@ -390,11 +378,11 @@ export async function changePassword(number, newPassword, session) {
 }
 
 async function handleMaxAttemptsReached(user, session) {
-  const maxAttemptsBan = process.env.MOBILE_ATTEMPTS_BAN_SECONDS;
+  const maxAttemptsBan = parseInt(process.env.MOBILE_ATTEMPTS_BAN_SECONDS || '3600');
   const lastAttemptDate = new Date(user.mobile_last_attempt_date);
   const currentTime = new Date();
   const secondsLeft =
-    maxAttemptsBan - Math.floor((currentTime - lastAttemptDate) / 1000);
+    maxAttemptsBan - Math.floor((currentTime.getTime() - lastAttemptDate.getTime()) / 1000);
 
   if (secondsLeft > 0) {
     const formattedTime = formatTimeLeft(secondsLeft);
@@ -424,10 +412,7 @@ async function generateNewCode(user, session) {
     { session }
   );
 
-  await sendSMSNotification(
-    user.mobile_number,
-    `B-${code} is your verification code.`
-  );
+  await sendSMSNotification(user.mobile_number, `B-${code} is your verification code.`);
 
   return {
     success: false,

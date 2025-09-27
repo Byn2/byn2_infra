@@ -62,31 +62,31 @@ export async function handleAuth(message: any) {
             console.log(ctx);
             await sendButtonMessage(ctx);
           }
-        } 
-      }else{
+        }
+      } else {
         console.log('Session token is invalid or intent not pending');
-          // regenerate token + store new intent
-          const newSessionToken = await generate5MinToken(mobile);
+        // regenerate token + store new intent
+        const newSessionToken = await generate5MinToken(mobile);
 
-          await userService.updateUser(
-            user._id,
-            {
-              bot_session: newSessionToken,
-            },
-            session
-          );
+        await userService.updateUser(
+          user._id,
+          {
+            bot_session: newSessionToken,
+          },
+          session
+        );
 
-          botIntent = await storeBotIntent(
-            {
-              bot_session: newSessionToken,
-              intent: 'start',
-            },
-            session
-          );
+        botIntent = await storeBotIntent(
+          {
+            bot_session: newSessionToken,
+            intent: 'start',
+          },
+          session
+        );
 
-          await commitTransaction(session);
-          // const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
-          // await sendButtonMessage(ctx);
+        await commitTransaction(session);
+        // const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
+        // await sendButtonMessage(ctx);
       }
     } else {
       const botToken = await generate3DayToken(mobile);
@@ -112,7 +112,6 @@ export async function handleAuth(message: any) {
       // i think i should comment this lines of code below
       const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
       await sendButtonMessage(ctx);
-      
     }
   }
 

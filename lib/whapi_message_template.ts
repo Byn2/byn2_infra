@@ -178,12 +178,7 @@ export async function mmDepositMessageTemplateAmount() {
   return 'Please enter the amount you want to desposit in your local currency e.g 10';
 }
 
-export async function mmDepositMessageTemplateConfirm(
-  name,
-  mobile,
-  depositing_number,
-  amount
-) {
+export async function mmDepositMessageTemplateConfirm(name, mobile, depositing_number, amount) {
   return {
     header: {
       text: 'Confirm Transaction',
@@ -212,20 +207,22 @@ export async function mmDepositMessageTemplateConfirm(
 
 export async function mmDepositMessageTemplateUSSD(mobile, ussd) {
   return {
-    header: {},
+    header: {
+      text: 'Complete Your Deposit',
+    },
     body: {
-      text: 'Click on Complete transaction',
+      text: 'Tap "Copy Code" below, then dial the code on your phone to complete your mobile money deposit.',
     },
     footer: {
-      text: "You'll receive a message once you complete the transaction",
+      text: "We'll notify you once your deposit is successful! ✅",
     },
     action: {
       buttons: [
         {
-          type: 'call',
-          title: 'Complete Transaction',
+          type: 'copy',
+          title: 'Copy Code & Dial',
           id: 'self_ussd',
-          phone_number: ussd,
+          copy_code: ussd,
         },
       ],
     },
@@ -239,10 +236,7 @@ export async function mmDepositMessageTemplateDifferentNumber() {
   return 'Please enter the number you want to use to deposit funds with e.g +232123456';
 }
 
-export async function mmDepositMessageTemplateUSSDDifferentNumber(
-  mobile,
-  ussd
-) {
+export async function mmDepositMessageTemplateUSSDDifferentNumber(mobile, ussd) {
   return {
     body: {
       text: 'Copy Payment code',
@@ -272,7 +266,7 @@ export async function transferMessageTemplateCurrency(mobile) {
       text: 'Select Currency',
     },
     body: {
-      text: "Select the currency you want to transfer",
+      text: 'Select the currency you want to transfer',
     },
     action: {
       buttons: [
@@ -305,12 +299,7 @@ export async function transferMessageTemplateNumber() {
   return 'Please enter the Whatsapp number you want to send funds to e.g +232123456';
 }
 
-export async function transferMessageTemplateConfirmLocal(
-  name,
-  mobile,
-  toNumber,
-  amount
-) {
+export async function transferMessageTemplateConfirmLocal(name, mobile, toNumber, amount) {
   return {
     header: {
       text: 'Confirm Transaction',
@@ -337,12 +326,7 @@ export async function transferMessageTemplateConfirmLocal(
   };
 }
 
-export async function transferMessageTemplateConfirmUSD(
-  name,
-  mobile,
-  toNumber,
-  amount
-) {
+export async function transferMessageTemplateConfirmUSD(name, mobile, toNumber, amount) {
   return {
     header: {
       text: 'Confirm Transaction',
@@ -369,27 +353,33 @@ export async function transferMessageTemplateConfirmUSD(
   };
 }
 
-export async function transfertMessageTemplateStatusSender(name, currency, amount, status, toNumber) {
-  if(status === 'true'){
-    return `Hi ${name}, you successfully sent ${amount} ${currency} to ${toNumber}`
-  }else{
-    return `Hi ${name}, you failed to send ${amount} ${currency} to ${toNumber}. Please try again later. If the problem persists, please contact support. Thank you for using Mocha.`
+export async function transfertMessageTemplateStatusSender(
+  name,
+  currency,
+  amount,
+  status,
+  toNumber
+) {
+  if (status === 'true') {
+    return `Hi ${name}, you successfully sent ${amount} ${currency} to ${toNumber}`;
+  } else {
+    return `Hi ${name}, you failed to send ${amount} ${currency} to ${toNumber}. Please try again later. If the problem persists, please contact support. Thank you for using Mocha.`;
   }
 }
 
-export async function transfertMessageTemplateAmountStatusReceiver(name, mobile, currency, amount, from) {
-  if(name){
-    return `Hi ${name}, you received ${amount} ${currency} from ${from}`
-  }else{
-    return `Hi ${mobile}, you received ${amount} ${currency} from ${from}`
+export async function transfertMessageTemplateAmountStatusReceiver(
+  name,
+  mobile,
+  currency,
+  amount,
+  from
+) {
+  if (name) {
+    return `Hi ${name}, you received ${amount} ${currency} from ${from}`;
+  } else {
+    return `Hi ${mobile}, you received ${amount} ${currency} from ${from}`;
   }
 }
-
-
-
-
-
-
 
 //withdraw
 

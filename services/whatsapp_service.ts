@@ -1,10 +1,10 @@
-import { sendTextMessage, sendImageMessage, sendButtonMessage } from '@/lib/whapi';
-import { initialMessageTemplate, mainMenuMessageTemplate } from '@/lib/whapi_message_template';
-import * as userService from '@/services/user_service';
+import { sendTextMessage, sendImageMessage, sendButtonMessage } from '../lib/whapi';
+import { initialMessageTemplate, mainMenuMessageTemplate } from '../lib/whapi_message_template';
+import * as userService from './user_service';
 import { handleAuth } from './whatsapp_helpers/handle_auth';
 import { handleDeposit } from './whatsapp_helpers/handle_deposit';
 import { handleCheckBalance } from './whatsapp_helpers/handle_check_balance';
-import { connectDB } from '@/lib/db';
+import { connectDB } from '../lib/db';
 import { handleSend } from './whatsapp_helpers/handle_send';
 import { handleWithdraw } from './whatsapp_helpers/handle_withdraw';
 
@@ -34,7 +34,7 @@ export async function init(body: any) {
       await handleWithdraw(message, authResult.botIntent);
     } else if (mainMenuBtn === 'ListV3:c1') {
       console.log('check balance');
-      await handleCheckBalance(message);
+      await handleCheckBalance(message, authResult.botIntent);
     }
   }else if(authResult.botIntent.intent === 'deposit'){
     
@@ -48,5 +48,6 @@ export async function init(body: any) {
     await handleWithdraw(message, authResult.botIntent, '', authResult.user);
   }else if(authResult.botIntent.intent === 'check_balance'){
     //const checkBalanceMethod = message.reply?.list_reply?.id;
+    await handleCheckBalance(message, authResult.botIntent);
   }
 }

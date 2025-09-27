@@ -25,7 +25,6 @@ export async function fetchuserTransactionsByStartDateAndEndDate(id: any, startD
 }
 
 export async function storeTransations(data: any, session: any) {
-  console.log("Service", data);
   const transaction = await transactionRepo.storeTransations(data, session);
   return transaction;
 }

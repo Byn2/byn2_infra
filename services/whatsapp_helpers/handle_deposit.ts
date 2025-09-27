@@ -1,4 +1,3 @@
-
 import {
   depositMethodMessageTemplate,
   mmDepositMessageTemplate1,
@@ -30,7 +29,6 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
     );
     const ctx = await depositMethodMessageTemplate(message.from);
     await sendButtonMessage(ctx);
-
   } else if (botIntent.intent === 'deposit') {
     if (method === 'ListV3:do1' || botIntent.intent_option === 'mobile_money') {
       if (method) {
@@ -64,6 +62,7 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
             botIntent._id,
             {
               step: 3,
+              payer: 'self',
               number: `+${message.from}`,
             },
             session
@@ -124,6 +123,7 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
         //confirmation
       } else if (botIntent.step === 4) {
         const confirmBtn = message.reply?.buttons_reply?.id;
+        console.log('confirmBtn', confirmBtn);
         if (confirmBtn === 'ButtonsV3:mm_confirm') {
           const payload = await monimeService.deposit(
             user,
@@ -145,18 +145,10 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
           );
 
           if (botIntent.payer === 'self') {
-            const ctx = await mmDepositMessageTemplateUSSD(
-            
-              message.from,
-              payload
-            );
+            const ctx = await mmDepositMessageTemplateUSSD(message.from, payload);
             await sendButtonMessage(ctx);
           } else if (botIntent.payer === 'different_number') {
-            const ctx = await mmDepositMessageTemplateUSSDDifferentNumber(
-              
-              message.from,
-              payload
-            );
+            const ctx = await mmDepositMessageTemplateUSSDDifferentNumber(message.from, payload);
             await sendButtonMessage(ctx);
           }
 

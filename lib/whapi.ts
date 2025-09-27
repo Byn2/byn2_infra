@@ -5,6 +5,7 @@ const whapiTextUrl = `${whapiUrl}/messages/text`
 const whapiButtonUrl = `${whapiUrl}/messages/interactive`
 
 export async function sendTextMessage(phoneNumber: string, message: string) {
+    console.log({phoneNumber, message})
     try{
         const payload = {
             to: phoneNumber,
