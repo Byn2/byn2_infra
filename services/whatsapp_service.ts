@@ -1,5 +1,5 @@
 import { sendTextMessage, sendImageMessage, sendButtonMessage } from '../lib/whapi';
-import { initialMessageTemplate, mainMenuMessageTemplate } from '../lib/whapi_message_template';
+import { initialMessageTemplate, mainMenuMessageTemplate, recipientOnboardingCompleteTemplate } from '../lib/whapi_message_template';
 import * as userService from './user_service';
 import { handleAuth } from './whatsapp_helpers/handle_auth';
 import { handleDeposit } from './whatsapp_helpers/handle_deposit';
@@ -25,10 +25,37 @@ export async function init(body: any) {
   const session = await startTransaction();
 
   try {
+    // Check for welcome flow before auth for new users
+    const mobile = `+${message.from}`;
+    const { getBotIntentByMobile } = await import('./bot_intent_service');
+    const pendingIntent = await getBotIntentByMobile(mobile);
+    
+    if (pendingIntent && pendingIntent.intent === 'welcome_pending') {
+      const buttonId = extractButtonId(message);
+      if (buttonId === 'ButtonsV3:welcome_get_started') {
+        // User clicked "Get Started" from welcome message
+        // Now create their account by running auth
+        const authResult = await handleAuth(message);
+        if (authResult.success && authResult.user) {
+          await commitTransaction(session);
+          return;
+        }
+      }
+    }
+
+    // Handle recipient onboarding flow
+    if (pendingIntent && pendingIntent.intent === 'recipient_pending') {
+      const buttonId = extractButtonId(message);
+      if (buttonId === 'ButtonsV3:recipient_get_started') {
+        // Recipient clicked "Get Started" from money received message
+        // The handleAuth() call below will process this and create the account
+        // After auth completes, we'll send the recipient completion message
+      }
+    }
+
     const authResult = await handleAuth(message);
 
     if (!authResult.success) {
-      console.log('Auth failed');
       return;
     }
 
@@ -44,6 +71,13 @@ export async function init(body: any) {
 
     // Handle conversation flow based on current intent and step
     const botIntent = authResult.botIntent;
+    
+    
+    // If botIntent is null (e.g., during welcome flow), skip conversation handling
+    if (!botIntent) {
+      await commitTransaction(session);
+      return;
+    }
     
     if (botIntent.intent === 'start' && botIntent.step === 0) {
       // Check if user selected from main menu first
@@ -79,16 +113,14 @@ export async function init(body: any) {
       const depositMethod = extractListId(message);
       await handleDeposit(message, botIntent, depositMethod, authResult.user);
     } else if (botIntent.intent === 'transfer') {
-      const currency = extractButtonId(message);
-      await handleSend(message, botIntent, currency, authResult.user);
+      await handleSend(message, botIntent, null, authResult.user);
     } else if (botIntent.intent === 'withdraw') {
       await handleWithdraw(message, botIntent, '', authResult.user);
     } else if (botIntent.intent === 'check_balance') {
       await handleCheckBalance(message, botIntent);
     } else {
       // Unknown intent or step
-      console.log('Unknown intent or step:', botIntent);
-      await handleInvalidInput(message, 'selection');
+      await handleInvalidInput(message, 'button');
     }
 
     await commitTransaction(session);

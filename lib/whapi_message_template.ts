@@ -508,3 +508,146 @@ export async function comingSoonMessageTemplate(featureName: string, mobile: str
     to: mobile,
   };
 }
+
+// New welcome message for first-time users (before account creation)
+export async function welcomeNewUserMessageTemplate(name: string, mobile: string) {
+  return {
+    header: {
+      text: 'Welcome to Mocha',
+    },
+    body: {
+      text: `Hi ${name}! 👋\n\nWelcome to Mocha — your virtual financial assistant that makes managing money easy and secure.\n\n💰 **What I can help you with:**\n• Send money instantly to any WhatsApp number\n• Deposit funds via mobile money or crypto\n• Withdraw funds to your account\n• Check your balance anytime\n• Secure transactions with blockchain technology\n\nReady to get started with your free digital wallet?`,
+    },
+    footer: {
+      text: 'Join thousands of users already using Mocha! 🚀',
+    },
+    action: {
+      buttons: [
+        {
+          type: 'quick_reply',
+          title: 'Get Started',
+          id: 'welcome_get_started',
+        },
+      ],
+    },
+    type: 'button',
+    media:
+      'https://images.unsplash.com/photo-1659018966825-43297e655ccf?q=80&w=1198&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    to: mobile,
+  };
+}
+
+// Congratulations message for new users after account creation
+export async function newUserCongratulationsMessageTemplate(name: string, mobile: string) {
+  return {
+    body: {
+      text: `🎉 Welcome to Mocha, ${name}!\n\nYour digital wallet is now active and ready to use. You can now:\n\n💡 **Quick Commands:**\n• Type "menu" - View all options\n• Type "balance" - Check your balance\n• Type "help" - Get assistance\n• Type "cancel" - Stop any operation\n\nLet's explore what you can do with your new wallet!`,
+    },
+    footer: {
+      text: 'Start with a deposit or receive money from friends! 💜',
+    },
+    action: {
+      list: {
+        sections: [
+          {
+            title: 'Get Started',
+            rows: [
+              {
+                id: 'd1',
+                title: 'Deposit Funds',
+                description: 'Add money via mobile money or crypto',
+              },
+              {
+                id: 'c1',
+                title: 'Check Balance',
+                description: 'View your current wallet balance',
+              },
+              {
+                id: 't1',
+                title: 'Send Money',
+                description: 'Transfer funds to any WhatsApp number',
+              },
+              {
+                id: 'w1',
+                title: 'Withdraw',
+                description: 'Withdraw funds to your account',
+              },
+            ],
+          },
+        ],
+        label: 'Choose an option',
+      },
+    },
+    type: 'list',
+    to: mobile,
+  };
+}
+
+// Welcome message for money recipients who are not in the database
+export async function recipientWelcomeMessageTemplate(mobile: string, currency: string, amount: number, fromName: string) {
+  return {
+    body: {
+      text: `🎉 Great news! You've received ${amount} ${currency} from ${fromName}!\n\n💰 **Your money is waiting for you**\n\nTo access your funds and start using Mocha's secure digital wallet, you'll need to create a free account. With Mocha you can:\n\n• Receive and send money instantly\n• Deposit via mobile money or crypto\n• Withdraw to your bank account\n• Secure transactions with blockchain\n\nWould you like to get started and claim your money?`,
+    },
+    footer: {
+      text: 'Join thousands of users already using Mocha! 🚀',
+    },
+    action: {
+      buttons: [
+        {
+          type: 'quick_reply',
+          title: 'Get Started',
+          id: 'recipient_get_started',
+        },
+      ],
+    },
+    type: 'button',
+    to: mobile,
+  };
+}
+
+// Onboarding completion message for recipients after they create account
+export async function recipientOnboardingCompleteTemplate(name: string, mobile: string, currency: string, amount: number, fromName: string) {
+  return {
+    body: {
+      text: `🎉 Welcome to Mocha, ${name}!\n\nYour account is now active and your ${amount} ${currency} from ${fromName} is in your wallet!\n\n💡 **What's next?**\n• Check your balance to see your funds\n• Withdraw to your bank account\n• Send money to friends and family\n• Deposit more funds anytime\n\n**Quick Commands:**\n• Type "menu" for all options\n• Type "balance" to check funds\n• Type "help" for assistance`,
+    },
+    footer: {
+      text: 'Enjoy using Mocha! 💜',
+    },
+    action: {
+      list: {
+        sections: [
+          {
+            title: 'Quick Actions',
+            rows: [
+              {
+                id: 'c1',
+                title: 'Check Balance',
+                description: 'View your current balance',
+              },
+              {
+                id: 'w1',
+                title: 'Withdraw Funds',
+                description: 'Withdraw to your bank account',
+              },
+              {
+                id: 't1',
+                title: 'Send Money',
+                description: 'Transfer funds to others',
+              },
+              {
+                id: 'd1',
+                title: 'Deposit More',
+                description: 'Add more funds to your wallet',
+              },
+            ],
+          },
+        ],
+        label: 'Choose an option',
+      },
+    },
+    type: 'list',
+    to: mobile,
+  };
+}

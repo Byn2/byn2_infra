@@ -53,9 +53,10 @@ export async function fetchUserByMobileBot(mobile) {
 }
 
 export async function fetchUserByTagOrMobile(identifier: any) {
+  await connectDB();
   const user = await userRepo.findUserByTagOrMobile(identifier);
   if (!user) {
-    return { success: false, message: 'User not found' };
+    return null;
   }
   return user;
 }

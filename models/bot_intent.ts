@@ -10,7 +10,7 @@ const botIntentSchema = new mongoose.Schema(
     },
     intent: {
       type: String,
-      enum: ['deposit', 'transfer', 'withdraw', 'check_balance', 'start'],
+      enum: ['deposit', 'transfer', 'withdraw', 'check_balance', 'start', 'welcome_pending', 'recipient_pending'],
       default: 'start',
     },
     intent_option: {
@@ -48,6 +48,28 @@ const botIntentSchema = new mongoose.Schema(
     ussd: {
       type: String,
       default: ""
+    },
+    // Additional fields for welcome and recipient flows
+    mobile_number: {
+      type: String,
+      default: null,
+    },
+    name: {
+      type: String,
+      default: null,
+    },
+    // Fields for recipient onboarding
+    received_amount: {
+      type: Number,
+      default: null,
+    },
+    received_currency: {
+      type: String,
+      default: null,
+    },
+    sender_name: {
+      type: String,
+      default: null,
     }
   },
   { timestamps: true }

@@ -15,19 +15,28 @@ export async function getCountryCurrency(countryCode) {
 }
 
 export async function currencyConverter(amount, from, to) {
-  let result;
-  const date = new Date();
-  const formattedDate = formatDateToYYYYMMDD(date);
-  const numericAmount = Number(amount);
+  try {
+    if (from === to) {
+      return Number(amount);
+    }
+    
+    let result;
+    const date = new Date();
+    const formattedDate = formatDateToYYYYMMDD(date);
+    const numericAmount = Number(amount);
 
-  result = await converter.convertOnDate(
-    numericAmount,
-    from,
-    to,
-    new Date(formattedDate)
-  );
+    result = await converter.convertOnDate(
+      numericAmount,
+      from,
+      to,
+      new Date(formattedDate)
+    );
 
-  return result;
+    return result;
+  } catch (error) {
+    // If conversion fails, return the original amount as fallback
+    return Number(amount);
+  }
 }
 
 export async function convertToUSD(amount, fromCurrency) {
