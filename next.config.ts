@@ -48,10 +48,6 @@ const nextConfig: NextConfig = {
   },
   // External packages that should be handled by Node.js instead of bundled
   serverExternalPackages: ['@solana/web3.js', '@solana/spl-token'],
-  // Enable experimental features for middleware
-  experimental: {
-    nodeMiddleware: true,
-  },
 };
 
 export default nextConfig;
