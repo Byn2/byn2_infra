@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import * as userService from '@/services/user_service';
-import { connectDB } from '@/lib/db';
+import { ensureConnection } from '@/lib/db';
 
 // Force this route to use Node.js runtime
 export const runtime = 'nodejs';
@@ -22,7 +22,7 @@ export async function GET() {
 
       console.log(decoded);
 
-      await connectDB();
+      await ensureConnection();
       const user = await userService.fetchUserById(decoded.id);
 
       if (!user) {

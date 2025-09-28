@@ -4,7 +4,6 @@ import * as userService from './user_service';
 import { handleAuth } from './whatsapp_helpers/handle_auth';
 import { handleDeposit } from './whatsapp_helpers/handle_deposit';
 import { handleCheckBalance } from './whatsapp_helpers/handle_check_balance';
-import { connectDB } from '../lib/db';
 import { handleSend } from './whatsapp_helpers/handle_send';
 import { handleWithdraw } from './whatsapp_helpers/handle_withdraw';
 import { 
@@ -20,7 +19,6 @@ import {
 import { startTransaction, commitTransaction } from '../lib/db_transaction';
 
 export async function init(body: any) {
-  await connectDB();
   const message = body.messages?.[0];
   const session = await startTransaction();
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db';
+import { ensureConnection } from '@/lib/db';
 import Transaction from '@/models/transaction';
 import { authenticateApiKey } from '@/lib/middleware/verifyTokenApp';
 import { generateOTP } from '@/lib/util';
@@ -7,7 +7,7 @@ import { generatePaymentSignature } from '@/lib/middleware/verifyTokenApp';
 
 export async function POST(req: NextRequest) {
   try {
-    await connectDB();
+    await ensureConnection();
 
     const { apiKey, amount, reference, metadata = {}, customer_id } = await req.json();
 

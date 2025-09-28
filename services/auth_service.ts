@@ -7,7 +7,6 @@ import { getCountryCurrency } from '../lib/helpers';
 import bcrypt from 'bcrypt';
 import { sendSMSNotification } from '../notifications/sms_notification';
 // import { kycVerify } from './monime_service.js';
-import { connectDB } from '../lib/db';
 
 /**
  * Registers a new user.
@@ -21,7 +20,6 @@ import { connectDB } from '../lib/db';
  * @returns {Promise<User|null>} The registered user, or null if registration failed.
  */
 export async function registerUser(data, session) {
-  await connectDB();
   const { name, email, password, country_code } = data;
 
   const country_details = await getCountryCurrency(country_code);
@@ -83,7 +81,6 @@ export async function registerUser(data, session) {
 export async function loginUser(
   data: any
 ): Promise<{ success: boolean; error?: string; user?: IUser }> {
-  await connectDB();
 
   const { email, password } = data;
 
@@ -105,7 +102,6 @@ export async function loginUser(
 }
 
 export async function OtpLogin(email: string, session: any): Promise<IUser | null> {
-  await connectDB();
 
   let user: IUser | null = await User.findOne({ mobile_number: email });
 
@@ -163,7 +159,6 @@ export async function OtpLogin(email: string, session: any): Promise<IUser | nul
 }
 
 export async function botLogin(data, session) {
-  await connectDB();
 
   const country_details = await getCountryCurrency('SL'); // or dynamic if available
   const currency = await currencyService.storeCurrency(

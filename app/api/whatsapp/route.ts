@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server";
 import * as whatsappBot from "@/services/whatsapp_service"
+import { ensureConnection } from "@/lib/db";
 
 export async function POST(request: Request) {
 
@@ -13,13 +14,15 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Ensure database connection at the API route level
+    await ensureConnection();
    
     const res = await whatsappBot.init(body);
 
     return NextResponse.json({ message: "Success" }, { status: 200 });
 
   } catch (error) {
-    // await abortTransaction(session);
+    console.error('WhatsApp API error:', error);
     return NextResponse.json(
       { message: "Something went wrong", error },
       { status: 500 }
