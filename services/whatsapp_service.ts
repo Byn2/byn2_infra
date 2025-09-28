@@ -25,34 +25,6 @@ export async function init(body: any) {
   const session = await startTransaction();
 
   try {
-    // Check for welcome flow before auth for new users
-    const mobile = `+${message.from}`;
-    const { getBotIntentByMobile } = await import('./bot_intent_service');
-    const pendingIntent = await getBotIntentByMobile(mobile);
-    
-    if (pendingIntent && pendingIntent.intent === 'welcome_pending') {
-      const buttonId = extractButtonId(message);
-      if (buttonId === 'ButtonsV3:welcome_get_started') {
-        // User clicked "Get Started" from welcome message
-        // Now create their account by running auth
-        const authResult = await handleAuth(message);
-        if (authResult.success && authResult.user) {
-          await commitTransaction(session);
-          return;
-        }
-      }
-    }
-
-    // Handle recipient onboarding flow
-    if (pendingIntent && pendingIntent.intent === 'recipient_pending') {
-      const buttonId = extractButtonId(message);
-      if (buttonId === 'ButtonsV3:recipient_get_started') {
-        // Recipient clicked "Get Started" from money received message
-        // The handleAuth() call below will process this and create the account
-        // After auth completes, we'll send the recipient completion message
-      }
-    }
-
     const authResult = await handleAuth(message);
 
     if (!authResult.success) {
@@ -102,6 +74,33 @@ export async function init(body: any) {
         const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
         await sendButtonMessage(ctx);
       }
+
+      // Handle "back to menu" button from coming soon message
+      const backToMenuBtn = extractButtonId(message);
+      if (backToMenuBtn === 'ButtonsV3:back_to_menu') {
+        const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
+        await sendButtonMessage(ctx);
+      }
+    } else if (botIntent.intent === 'start' && botIntent.step === 1) {
+      // Menu already sent in congratulations message, just handle selections
+      const mainMenuBtn = extractListId(message);
+      if (mainMenuBtn) {
+        if (mainMenuBtn === 'ListV3:d1') {
+          await handleDeposit(message, botIntent);
+        } else if (mainMenuBtn === 'ListV3:t1') {
+          await handleSend(message, botIntent);
+        } else if (mainMenuBtn === 'ListV3:w1') {
+          await handleWithdraw(message, botIntent);
+        } else if (mainMenuBtn === 'ListV3:c1') {
+          await handleCheckBalance(message, botIntent);
+        } else if (mainMenuBtn === 'ListV3:csoon') {
+          await handleComingSoonFeature('csoon', message, session);
+        } else {
+          // Invalid main menu selection
+          await handleInvalidInput(message, 'list');
+        }
+      }
+      // No else clause - don't send another menu since congratulations already has one
 
       // Handle "back to menu" button from coming soon message
       const backToMenuBtn = extractButtonId(message);
