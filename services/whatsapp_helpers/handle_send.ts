@@ -165,6 +165,23 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
           );
           await sendTextMessage(message.from, ctx);
         }
+
+        // Reset bot intent to start state for next interaction
+        await updateBotIntent(
+          botIntent._id,
+          {
+            intent: 'start',
+            status: 'pending',
+            step: 0,
+            amount: null,
+            currency: null,
+            number: null,
+            payer: null,
+            intent_option: null,
+            ussd: ""
+          },
+          session
+        );
       } else if (confirmBtn === 'ButtonsV3:tt_cancel') {
         await updateBotIntent(
           botIntent._id,

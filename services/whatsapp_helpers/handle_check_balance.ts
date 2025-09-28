@@ -24,7 +24,7 @@ export async function handleCheckBalance(message: any, botIntent: any): Promise<
     const wallet = await walletService.getWalletBalance(user);
     const fiat = await convertFromUSD(wallet.balance, currency);
 
-    // Update bot intent using the passed botIntent parameter
+    // Update bot intent to success status first
     await updateBotIntent(
       botIntent._id,
       {
@@ -35,8 +35,6 @@ export async function handleCheckBalance(message: any, botIntent: any): Promise<
       session
     );
 
-    await commitTransaction(session);
-
     // Send balance message
     const ctx = await checkBalanceMessageTemplate(
       message.from_name,
@@ -46,6 +44,25 @@ export async function handleCheckBalance(message: any, botIntent: any): Promise<
     );
 
     await sendTextMessage(message.from, ctx);
+
+    // Reset bot intent to start state for next interaction
+    await updateBotIntent(
+      botIntent._id,
+      {
+        intent: 'start',
+        status: 'pending',
+        step: 0,
+        amount: null,
+        currency: null,
+        number: null,
+        payer: null,
+        intent_option: null,
+        ussd: ""
+      },
+      session
+    );
+
+    await commitTransaction(session);
     
   } catch (error) {
     console.error('Error in handleCheckBalance:', error);
