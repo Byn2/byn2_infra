@@ -25,9 +25,6 @@ export async function handleCheckBalance(message: any, botIntent: any): Promise<
     const wallet = await walletService.getWalletBalance(user);
     const fiat = await convertFromUSD(wallet.balance, currency);
 
-    console.log('wallet balance:', wallet.balance);
-    console.log('fiat balance:', fiat);
-
     // Update bot intent using the passed botIntent parameter
     await updateBotIntent(
       botIntent._id,
@@ -50,7 +47,6 @@ export async function handleCheckBalance(message: any, botIntent: any): Promise<
     );
 
     await sendTextMessage(message.from, ctx);
-    console.log('Balance message sent successfully');
     
   } catch (error) {
     console.error('Error in handleCheckBalance:', error);

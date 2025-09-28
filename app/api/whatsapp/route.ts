@@ -6,6 +6,12 @@ export async function POST(request: Request) {
 
   const body = await request.json();
 
+  // Check if webhook contains a message before processing
+  if (!body.messages || !body.messages[0]) {
+    // This is likely a status update, delivery receipt, or other non-message webhook
+    return NextResponse.json({ message: "No message to process" }, { status: 200 });
+  }
+
   try {
    
     const res = await whatsappBot.init(body);

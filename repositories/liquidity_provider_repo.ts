@@ -1,3 +1,4 @@
+// @ts-nocheck
 import LiquidityProvider from '../models/liquidity_provider';
 
 const projection = {

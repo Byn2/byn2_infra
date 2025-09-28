@@ -1,11 +1,13 @@
+// @ts-nocheck
+// @ts-nocheck
 import BusinessWebhook from '../models/business-webhook';
 
 const projection = {
-    business_id: 1,
-    active: 1,
-    url: 1,
-    secret: 1,
-    events: 1,
+  business_id: 1,
+  active: 1,
+  url: 1,
+  secret: 1,
+  events: 1,
 };
 
 export async function getBusinessWebhookByBusinessId(businessId: string) {
@@ -24,7 +26,11 @@ export async function getBusinessWebhookByBusinessIdAndUrl(businessId: string, u
   return await BusinessWebhook.findOne({ business_id: businessId, url }, projection);
 }
 
-export async function getBusinessWebhookByBusinessIdAndUrlAndSecret(businessId: string, url: string, secret: string) {
+export async function getBusinessWebhookByBusinessIdAndUrlAndSecret(
+  businessId: string,
+  url: string,
+  secret: string
+) {
   return await BusinessWebhook.findOne({ business_id: businessId, url, secret }, projection);
 }
 

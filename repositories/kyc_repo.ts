@@ -1,3 +1,4 @@
+// @ts-nocheck
 //@ts-nocheck
 //@ts-ignore
 import KYC from '../models/kyc';

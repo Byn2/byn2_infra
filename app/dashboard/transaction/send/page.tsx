@@ -122,7 +122,6 @@ export default function SendMoneyPage() {
         result = await sendByn2Transfer({
           amount: Number(amount.replace(/,/g, "")),
           currency,
-          baseCurrency,
           notes,
           recipient: selectedContact,
         })
@@ -135,7 +134,6 @@ export default function SendMoneyPage() {
         result = await sendBankTransfer({
           amount: Number(amount.replace(/,/g, "")),
           currency,
-          baseCurrency,
           bankAddress,
           bankName,
           accountNumber,
@@ -285,28 +283,26 @@ export default function SendMoneyPage() {
 
             <div className="grid grid-cols-5 gap-6 pt-0 bg-white p-4">
               <div className="col-span-3 rounded-lg bg-white p-6">
-                {transferType === "international" && (
-                  <div className="mb-4 flex rounded-md bg-gray-100">
-                    <button
-                      type="button"
-                      className={`flex-1 rounded-md py-2 text-center text-sm ${
-                        transferType === "local" ? "bg-white shadow-sm" : ""
-                      }`}
-                      onClick={() => setTransferType("local")}
-                    >
-                      Local Transfer
-                    </button>
-                    <button
-                      type="button"
-                      className={`flex-1 rounded-md py-2 text-center text-sm ${
-                        transferType === "international" ? "bg-[#01133B] text-white" : ""
-                      }`}
-                      onClick={() => setTransferType("international")}
-                    >
-                      International Transfer
-                    </button>
-                  </div>
-                )}
+                <div className="mb-4 flex rounded-md bg-gray-100">
+                  <button
+                    type="button"
+                    className={`flex-1 rounded-md py-2 text-center text-sm ${
+                      transferType === "local" ? "bg-white shadow-sm" : ""
+                    }`}
+                    onClick={() => setTransferType("local")}
+                  >
+                    Local Transfer
+                  </button>
+                  <button
+                    type="button"
+                    className={`flex-1 rounded-md py-2 text-center text-sm ${
+                      transferType === "international" ? "bg-[#01133B] text-white" : ""
+                    }`}
+                    onClick={() => setTransferType("international")}
+                  >
+                    International Transfer
+                  </button>
+                </div>
 
                 <div className="space-y-4">
                   <div>

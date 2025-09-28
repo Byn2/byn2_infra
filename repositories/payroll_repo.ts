@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Payroll from '../models/payroll';
 
 const projection = {

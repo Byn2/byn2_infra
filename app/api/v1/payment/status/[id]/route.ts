@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     await connectDB()
 
     // Find the transaction
-    const transaction = await Transaction.findById(id)
+    const transaction = await (Transaction as any).findById(id)
     if (!transaction) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
     }

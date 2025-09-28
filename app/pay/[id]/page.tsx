@@ -60,7 +60,7 @@ interface DepositResponse {
   ussdCode: string;
 }
 
-export default function PaymentPage({ params }: { params: { id: string } }) {
+export default function PaymentPage({ params }: { params: Promise<{ id: string }> }) {
   // Flow states
   const [step, setStep] = useState<number>(1); // 1: Auth, 2: Transaction, 3: Result
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -92,6 +92,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
     id: string;
     timestamp: string;
   } | null>(null);
+  const [paymentSignature, setPaymentSignature] = useState<string>("");
 
   // Validate payment signature on component mount
   useEffect(() => {
@@ -100,9 +101,11 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
         setIsLoading(true);
         setError(null);
 
+        const resolvedParams = await params;
         // The URL format is: /pay/{id}.{timestamp}.{token}
         // The full URL parameter contains the entire signature
-        const fullSignature = params.id;
+        const fullSignature = resolvedParams.id;
+        setPaymentSignature(fullSignature);
 
         // Call the API route to verify the signature
         const response = await fetch("/api/v1/payment/verify-signature", {
@@ -137,7 +140,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
     };
 
     validatePaymentSignature();
-  }, [params.id]);
+  }, [params]);
 
   // Request OTP
   const requestOtp = async () => {

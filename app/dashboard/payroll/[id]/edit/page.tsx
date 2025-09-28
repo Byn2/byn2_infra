@@ -60,7 +60,7 @@ interface Payroll {
 export default function EditPayrollPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -92,7 +92,8 @@ export default function EditPayrollPage({
   useEffect(() => {
     const fetchPayroll = async () => {
       try {
-        const response = await fetch(`/api/v1/payroll/${params.id}`)
+        const resolvedParams = await params;
+        const response = await fetch(`/api/v1/payroll/${resolvedParams.id}`)
         if (!response.ok) {
           throw new Error("Failed to fetch payroll")
         }
@@ -124,7 +125,7 @@ export default function EditPayrollPage({
     }
 
     fetchPayroll()
-  }, [params.id])
+  }, [params])
 
   // Show toast for form errors and handle redirects
   useEffect(() => {

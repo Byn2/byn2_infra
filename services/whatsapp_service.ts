@@ -7,47 +7,94 @@ import { handleCheckBalance } from './whatsapp_helpers/handle_check_balance';
 import { connectDB } from '../lib/db';
 import { handleSend } from './whatsapp_helpers/handle_send';
 import { handleWithdraw } from './whatsapp_helpers/handle_withdraw';
+import { 
+  isGlobalCommand, 
+  handleGlobalCommand, 
+  extractTextInput,
+  extractButtonId,
+  extractListId,
+  handleInvalidInput,
+  isComingSoonFeature,
+  handleComingSoonFeature
+} from '../lib/whatsapp_utils';
+import { startTransaction, commitTransaction } from '../lib/db_transaction';
 
 export async function init(body: any) {
   await connectDB();
   const message = body.messages?.[0];
+  const session = await startTransaction();
 
-  const authResult = await handleAuth(message);
+  try {
+    const authResult = await handleAuth(message);
 
-  if (!authResult.success) {
-    console.log('Auth failed');
-  }
-
-
-  //get bot intent
-  if (authResult.botIntent.intent === 'start' && authResult.botIntent.step === 0) {
-    const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
-    await sendButtonMessage(ctx);
-
-    const mainMenuBtn = message.reply?.list_reply?.id;
-
-    if (mainMenuBtn === 'ListV3:d1') {
-      await handleDeposit(message, authResult.botIntent);
-    } else if (mainMenuBtn === 'ListV3:t1') {
-      await handleSend(message, authResult.botIntent);
-    } else if (mainMenuBtn === 'ListV3:w1') {
-      await handleWithdraw(message, authResult.botIntent);
-    } else if (mainMenuBtn === 'ListV3:c1') {
-      console.log('check balance');
-      await handleCheckBalance(message, authResult.botIntent);
+    if (!authResult.success) {
+      console.log('Auth failed');
+      return;
     }
-  }else if(authResult.botIntent.intent === 'deposit'){
+
+    // Check for global commands first (works at any step)
+    const textInput = extractTextInput(message);
+    if (textInput && isGlobalCommand(textInput)) {
+      const handled = await handleGlobalCommand(textInput, message, authResult.user, session);
+      if (handled) {
+        await commitTransaction(session);
+        return;
+      }
+    }
+
+    // Handle conversation flow based on current intent and step
+    const botIntent = authResult.botIntent;
     
-    const depositMethod = message.reply?.list_reply?.id;
-    await handleDeposit(message, authResult.botIntent, depositMethod, authResult.user);
-  }else if(authResult.botIntent.intent === 'transfer'){
-    const currency = message.reply?.buttons_reply?.id;
-    await handleSend(message, authResult.botIntent, currency, authResult.user);
-  }else if(authResult.botIntent.intent === 'withdraw'){
-    //const checkBalanceMethod = message.reply?.list_reply?.id;
-    await handleWithdraw(message, authResult.botIntent, '', authResult.user);
-  }else if(authResult.botIntent.intent === 'check_balance'){
-    //const checkBalanceMethod = message.reply?.list_reply?.id;
-    await handleCheckBalance(message, authResult.botIntent);
+    if (botIntent.intent === 'start' && botIntent.step === 0) {
+      // Check if user selected from main menu first
+      const mainMenuBtn = extractListId(message);
+      if (mainMenuBtn) {
+        if (mainMenuBtn === 'ListV3:d1') {
+          await handleDeposit(message, botIntent);
+        } else if (mainMenuBtn === 'ListV3:t1') {
+          await handleSend(message, botIntent);
+        } else if (mainMenuBtn === 'ListV3:w1') {
+          await handleWithdraw(message, botIntent);
+        } else if (mainMenuBtn === 'ListV3:c1') {
+          await handleCheckBalance(message, botIntent);
+        } else if (mainMenuBtn === 'ListV3:csoon') {
+          await handleComingSoonFeature('csoon', message, session);
+        } else {
+          // Invalid main menu selection
+          await handleInvalidInput(message, 'list');
+        }
+      } else {
+        // Only send main menu if no selection was made
+        const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
+        await sendButtonMessage(ctx);
+      }
+
+      // Handle "back to menu" button from coming soon message
+      const backToMenuBtn = extractButtonId(message);
+      if (backToMenuBtn === 'ButtonsV3:back_to_menu') {
+        const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
+        await sendButtonMessage(ctx);
+      }
+    } else if (botIntent.intent === 'deposit') {
+      const depositMethod = extractListId(message);
+      await handleDeposit(message, botIntent, depositMethod, authResult.user);
+    } else if (botIntent.intent === 'transfer') {
+      const currency = extractButtonId(message);
+      await handleSend(message, botIntent, currency, authResult.user);
+    } else if (botIntent.intent === 'withdraw') {
+      await handleWithdraw(message, botIntent, '', authResult.user);
+    } else if (botIntent.intent === 'check_balance') {
+      await handleCheckBalance(message, botIntent);
+    } else {
+      // Unknown intent or step
+      console.log('Unknown intent or step:', botIntent);
+      await handleInvalidInput(message, 'selection');
+    }
+
+    await commitTransaction(session);
+  } catch (error) {
+    console.error('Error in WhatsApp service:', error);
+    await session.abortTransaction();
+    throw error;
   }
 }

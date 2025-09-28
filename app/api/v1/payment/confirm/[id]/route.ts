@@ -11,7 +11,7 @@ import { stat } from "fs";
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await verifyToken(request);
   if ("user" in auth === false) return auth;

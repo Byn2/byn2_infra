@@ -58,6 +58,11 @@ You can now deposit with mobile money or crypto, transfer funds, withdraw to you
                 title: 'Check Balance',
                 description: 'Check your wallet balance',
               },
+              {
+                id: 'csoon',
+                title: 'Invest in Stocks',
+                description: 'Coming soon',
+              },
             ],
           },
         ],
@@ -100,6 +105,11 @@ export async function mainMenuMessageTemplate(name, mobile) {
                 id: 'c1',
                 title: 'Check Balance',
                 description: 'Check your wallet balance',
+              },
+              {
+                id: 'csoon',
+                title: 'Invest in Stocks',
+                description: 'Coming soon',
               },
             ],
           },
@@ -381,6 +391,10 @@ export async function transfertMessageTemplateAmountStatusReceiver(
   }
 }
 
+export async function depositSuccessMessageTemplate(name, mobile, amount, currency) {
+  return `Hi ${name}, you successfully deposited ${amount} ${currency}`;
+}
+
 //withdraw
 
 //check balance
@@ -391,4 +405,106 @@ export async function checkBalanceMessageTemplate(
   fiat: number
 ) {
   return `Hi ${name}, your current balance is: \n\n USDC: ${usdc} \n\n Fiat: ${fiat}`;
+}
+
+// Error and global command templates
+export async function invalidSelectionMessageTemplate(mobile: string) {
+  return {
+    body: {
+      text: `❌ I didn't understand that selection. Please choose from the available options.\n\n💡 You can also type:\n• "menu" - Return to main menu\n• "restart" - Start over\n• "help" - Get assistance`,
+    },
+    type: 'text',
+    to: mobile,
+  };
+}
+
+export async function helpMessageTemplate(mobile: string) {
+  return {
+    body: {
+      text: `🆘 **Mocha Bot Help**\n\nAvailable commands (type anytime):\n• **menu** - Return to main menu\n• **restart** - Start conversation over\n• **help** - Show this help message\n• **balance** - Check your balance quickly\n\n📱 **What I can help with:**\n• Deposit funds (mobile money/crypto)\n• Send money to WhatsApp contacts\n• Withdraw to your account\n• Check account balance\n\nNeed more help? Contact our support team.`,
+    },
+    type: 'text',
+    to: mobile,
+  };
+}
+
+export async function sessionResetMessageTemplate(name: string, mobile: string) {
+  return {
+    body: {
+      text: `🔄 Session reset successfully, ${name}! Let's start fresh.\n\nHow can Mocha help you today?`,
+    },
+    action: {
+      list: {
+        sections: [
+          {
+            title: 'Select an option',
+            rows: [
+              {
+                id: 'd1',
+                title: 'Deposit',
+                description: 'Deposit with mobile money or crypto',
+              },
+              {
+                id: 't1',
+                title: 'Send',
+                description: 'Transfer funds to any WhatsApp number',
+              },
+              {
+                id: 'w1',
+                title: 'Withdraw',
+                description: 'Withdraw funds to your account',
+              },
+              {
+                id: 'c1',
+                title: 'Check Balance',
+                description: 'Check your wallet balance',
+              },
+              {
+                id: 'csoon',
+                title: 'Invest in Stocks',
+                description: 'Coming soon',
+              },
+            ],
+          },
+        ],
+        label: 'Mocha Menu',
+      },
+    },
+    type: 'list',
+    to: mobile,
+  };
+}
+
+export async function invalidAmountMessageTemplate(mobile: string) {
+  return `❌ Please enter a valid amount (numbers only). For example: 10 or 25.50\n\n💡 Type "cancel" to return to main menu.`;
+}
+
+export async function invalidPhoneNumberMessageTemplate(mobile: string) {
+  return `❌ Please enter a valid phone number with country code. For example: +232123456789\n\n💡 Type "cancel" to return to main menu.`;
+}
+
+export async function operationCancelledMessageTemplate(mobile: string) {
+  return `✅ Operation cancelled. Returning to main menu...`;
+}
+
+export async function comingSoonMessageTemplate(featureName: string, mobile: string) {
+  return {
+    body: {
+      text: `🚀 **${featureName}** is coming soon!\n\nWe're working hard to bring you this exciting feature. You'll be among the first to know when it's ready! 🎉\n\nIn the meantime, feel free to explore our other services.`,
+    },
+    footer: {
+      text: 'Thank you for your patience! 💜',
+    },
+    action: {
+      buttons: [
+        {
+          type: 'quick_reply',
+          title: 'Back to Menu',
+          id: 'back_to_menu',
+        },
+      ],
+    },
+    type: 'button',
+    to: mobile,
+  };
 }

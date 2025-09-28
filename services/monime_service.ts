@@ -9,6 +9,8 @@ import {
   notifyWithdrawal,
   notifyFailedWithdrawal,
 } from '../notifications/fcm_notification';
+import { sendTextMessage } from '../lib/whapi';
+import { depositSuccessMessageTemplate } from '../lib/whapi_message_template';
 // import { walletUpdateSocket } from '../lib/websocket_server';
 // import lookupMobileOperator from 'mobile-operator-lookup';
 
@@ -46,9 +48,7 @@ interface MonimePayoutRequest {
 
 interface MonimeWebhookPayload {
   status: string;
-  customer_target: {
-    reference: string;
-  };
+  reference: string;
 }
 
 const monime_space_id = process.env.MONIME_SPACE_ID;
@@ -57,10 +57,10 @@ const monime_kyc_key = process.env.MONIME_KYC_TOKEN;
 
 export async function deposit(
   user: any,
-  body: { amount: number; depositing_number?: string },
+  body: { amount: number; depositing_number?: string; platform?: string },
   session: any
 ): Promise<string> {
-  const { amount, depositing_number } = body;
+  const { amount, depositing_number, platform } = body;
 
   const deposit_number = depositing_number || user.mobile_number;
   const deposit_type = depositing_number ? 'direct_deposit' : 'deposit';
@@ -82,6 +82,7 @@ export async function deposit(
     status: 'pending',
     provider: 'monime',
     type: deposit_type,
+    platform: platform,
     fee: {
       amount: '0',
       currency: userCurrency,
@@ -134,7 +135,7 @@ export async function deposit(
   const data = await response.json();
 
   const ussdCode = data.result.ussdCode;
-  
+
   await transactionService.updateTransaction(transaction_id, { ussd: ussdCode }, session);
 
   return ussdCode;
@@ -352,18 +353,34 @@ export async function withdraw(
 }
 
 export async function webhook(body: MonimeWebhookPayload, session: any): Promise<void> {
-  const { status, customer_target } = body;
+  const { status, reference } = body;
 
   // find the transaction
-  const txt = await transactionService.fetchByID(customer_target.reference);
+  const txt = await transactionService.fetchByID(reference);
   if (!txt) {
     return;
   }
   const amount = txt.amount;
   const user = await userService.fetchUserById(txt.from_id);
 
-  if (txt) {
-    if (status === 'completed' && txt.status !== 'completed') {
+  if (txt.platform === 'whatsapp' && txt.status !== 'completed') {
+    if (status === 'completed') {
+      await walletService.deposit(user, { amount }, session, status);
+      //update the transaction
+      await transactionService.updateTransaction(txt._id, { status: status }, session);
+      const phoneNumber = user.mobile_number.replace('+', '');
+      const ctx = await depositSuccessMessageTemplate(user.name, user.mobile_number, amount, 'Le');
+      await sendTextMessage(phoneNumber, ctx);
+    } else if (status === 'processing' && txt.status == 'pending') {
+      await transactionService.updateTransaction(txt._id, { status: status }, session);
+    } else if (status === 'failed' || status === 'expired') {
+      await transactionService.updateTransaction(txt._id, { status: status }, session);
+      //send message to the user that the deposit is failed
+    } else {
+      await transactionService.updateTransaction(txt._id, { status: status }, session);
+    }
+  } else {
+    if (status === 'completed' && txt.status !== 'completed' && txt.platform !== 'whatsapp') {
       await walletService.deposit(user, { amount }, session, status);
 
       //update the transaction
@@ -386,8 +403,6 @@ export async function webhook(body: MonimeWebhookPayload, session: any): Promise
     } else {
       await transactionService.updateTransaction(txt._id, { status: status }, session);
     }
-  } else {
-    console.log('No transaction found');
   }
 }
 

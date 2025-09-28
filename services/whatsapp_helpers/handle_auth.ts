@@ -12,12 +12,21 @@ import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_
 
 export async function handleAuth(message: any) {
   const session = await startTransaction();
+  
+  // Validate message has required fields
+  if (!message || !message.from) {
+    console.error('Invalid message object: missing from field');
+    await abortTransaction(session);
+    return { success: false, botIntent: null, user: null };
+  }
+  
   const mobile = `+${message.from}`;
   let fetchedUser = await userService.fetchUserByMobileBot(mobile);
   let botIntent;
 
-  //console.log(fetchedUser);
-  if (!fetchedUser.success) {
+  try {
+    //console.log(fetchedUser);
+    if (!fetchedUser.success) {
     const botToken = await generate3DayToken(mobile);
     const sessionToken = await generate5MinToken(mobile);
     //create user
@@ -80,13 +89,13 @@ export async function handleAuth(message: any) {
           {
             bot_session: newSessionToken,
             intent: 'start',
+            step: 0,
           },
           session
         );
 
         await commitTransaction(session);
-        // const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
-        // await sendButtonMessage(ctx);
+        // Menu will be sent by main service, not here to prevent duplicates
       }
     } else {
       const botToken = await generate3DayToken(mobile);
@@ -103,19 +112,23 @@ export async function handleAuth(message: any) {
         {
           bot_token: botToken,
           intent: 'start',
+          step: 0,
         },
         session
       );
 
       await commitTransaction(session);
       fetchedUser = await userService.fetchUserByMobileBot(mobile);
-      // i think i should comment this lines of code below
-      const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
-      await sendButtonMessage(ctx);
+      // Menu will be sent by main service, not here to prevent duplicates
     }
   }
 
   return { success: true, botIntent, user: fetchedUser.data };
+  } catch (error) {
+    await abortTransaction(session);
+    console.error('Error in handleAuth:', error);
+    return { success: false, botIntent: null, user: null };
+  }
 }
 
 export const generate3DayToken = async (mobile_number: string) => {

@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
   try {
     const transactions = await transactionService.fetchuserTransactionsByStartDateAndEndDate(
-      auth._id,
+      auth.user._id,
       startDate,
       endDate
     );

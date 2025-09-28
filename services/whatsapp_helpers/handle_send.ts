@@ -11,6 +11,14 @@ import {
   transfertMessageTemplateAmountUSD,
   transfertMessageTemplateStatusSender,
 } from '@/lib/whapi_message_template';
+import {
+  isValidAmount,
+  isValidPhoneNumber,
+  extractButtonId,
+  extractTextInput,
+  sendValidationError,
+  handleInvalidInput
+} from '@/lib/whatsapp_utils';
 
 export async function handleSend(message: any, botIntent: any, currency?: any, user?: any) {
   const session = await startTransaction();
@@ -49,7 +57,12 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
           session
         );
       } else if (botIntent.step === 2) {
-        const amt = message.text?.body;
+        const amt = extractTextInput(message);
+
+        if (!amt || !isValidAmount(amt)) {
+          await sendValidationError('amount', message.from);
+          return;
+        }
 
         const ctx = await transferMessageTemplateNumber();
         await sendTextMessage(message.from, ctx );
@@ -63,7 +76,12 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
           session
         );
       } else if (botIntent.step === 3) {
-        const number = message.text?.body;
+        const number = extractTextInput(message);
+
+        if (!number || !isValidPhoneNumber(number)) {
+          await sendValidationError('phone', message.from);
+          return;
+        }
 
         const ctx = await transferMessageTemplateConfirmLocal(
           message.from_name,
@@ -81,7 +99,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
           session
         );
       } else if (botIntent.step === 4) {
-        const confirmBtn = message.reply?.buttons_reply?.id;
+        const confirmBtn = extractButtonId(message);
         if (confirmBtn === 'ButtonsV3:tt_confirm') {
   
           await updateBotIntent(botIntent._id,{
@@ -97,6 +115,8 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
               },
               session
             );
+            // send message to the user that the transfer is successful
+            // send message to user that they received the money
             const ctx = await transfertMessageTemplateStatusSender(
               message.from_name,
               'Le',
@@ -117,6 +137,17 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
           }
         } else if (confirmBtn === 'ButtonsV3:tt_cancel') {
           console.log('cancel transfer');
+          // Reset to main menu after cancel
+          await updateBotIntent(
+            botIntent._id,
+            {
+              intent: 'start',
+              step: 0,
+            },
+            session
+          );
+        } else {
+          await handleInvalidInput(message, 'button');
         }
       } else {
       }
@@ -141,7 +172,12 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
               session
             );
           } else if (botIntent.step === 2) {
-            const amt = message.text?.body;
+            const amt = extractTextInput(message);
+
+            if (!amt || !isValidAmount(amt)) {
+              await sendValidationError('amount', message.from);
+              return;
+            }
     
             const ctx = await transferMessageTemplateNumber();
             await sendTextMessage(message.from, ctx );
@@ -155,9 +191,14 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
               session
             );
           } else if (botIntent.step === 3) {
-            const number = message.text?.body;
+            const number = extractTextInput(message);
+
+            if (!number || !isValidPhoneNumber(number)) {
+              await sendValidationError('phone', message.from);
+              return;
+            }
     
-            const ctx = transferMessageTemplateConfirmUSD(
+            const ctx = await transferMessageTemplateConfirmUSD(
               message.from_name,
               message.from,
               number,
@@ -173,7 +214,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
               session
             );
           } else if (botIntent.step === 4) {
-            const confirmBtn = message.reply?.buttons_reply?.id;
+            const confirmBtn = extractButtonId(message);
             if (confirmBtn === 'ButtonsV3:tt_confirm') {
               console.log('confirm transfer');
               try {
@@ -182,6 +223,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
                   {
                     identifier: botIntent.number,
                     amount: botIntent.amount,
+                    platform: 'whatsapp',
                   },
                   session
                 );
@@ -205,11 +247,22 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
               }
             } else if (confirmBtn === 'ButtonsV3:tt_cancel') {
               console.log('cancel transfer');
+              // Reset to main menu after cancel
+              await updateBotIntent(
+                botIntent._id,
+                {
+                  intent: 'start',
+                  step: 0,
+                },
+                session
+              );
+            } else {
+              await handleInvalidInput(message, 'button');
             }
           } else {
           }
     } else {
-      await sendTextMessage('Invalid currency', mobile);
+      await handleInvalidInput(message, 'button');
     }
   } else {
   }
