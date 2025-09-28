@@ -9,9 +9,13 @@ import Currency from "../models/currency";
  * @throws {Object} If the currency is not found
  */
 export async function getCurrency(user: any) {
+  if (!user || !user.currency_id) {
+    return 'USD'; // Default currency if user doesn't have one
+  }
+  
   const currency = await Currency.findOne({ _id: user.currency_id });
   if (!currency) {
-    throw { status: 404, message: "Currency not found" };
+    return 'USD'; // Default currency if not found
   }
   return currency.code;
 }

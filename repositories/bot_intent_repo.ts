@@ -18,6 +18,11 @@ export async function getBotIntentBySession(session: String) {
   return await BotIntent.findOne({ bot_session: session }, projection);
 }
 
+export async function getBotIntentByMobile(mobile: String) {
+  //@ts-ignore
+  return await BotIntent.findOne({ mobile_number: mobile }, projection);
+}
+
 export async function storeBotIntent(data: any, options = {}) {
   const botIntent = new BotIntent(data);
   await botIntent.save(options);
@@ -26,5 +31,15 @@ export async function storeBotIntent(data: any, options = {}) {
 
 export async function updateBotIntent(id: String, data: any, options = {}) {
   //@ts-ignore
-  await BotIntent.updateOne({ _id: id }, data, options);
+  const result = await BotIntent.findByIdAndUpdate(id, data, { ...options, new: true });
+  return result;
+}
+
+export async function cleanupPendingIntents(mobile: String, options = {}) {
+  //@ts-ignore
+  const result = await BotIntent.deleteMany({ 
+    mobile_number: mobile, 
+    intent: { $in: ['welcome_pending', 'recipient_pending'] }
+  }, options);
+  return result;
 }

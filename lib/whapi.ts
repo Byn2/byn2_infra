@@ -5,7 +5,6 @@ const whapiTextUrl = `${whapiUrl}/messages/text`
 const whapiButtonUrl = `${whapiUrl}/messages/interactive`
 
 export async function sendTextMessage(phoneNumber: string, message: string) {
-    console.log({phoneNumber, message})
     try{
         const payload = {
             to: phoneNumber,
@@ -23,16 +22,15 @@ export async function sendTextMessage(phoneNumber: string, message: string) {
         })
         
     }catch(error){
-        console.log(error)
     }
 }
 
-export async function sendImageMessage(phoneNumber: string, imageUrl: string) {
+export async function sendImageMessage(phoneNumber: string, mediaUrl: string, caption?: string) {
     try{
         const payload = {
             to: phoneNumber,
-            image: imageUrl,
-            caption: ""
+            media: mediaUrl,
+            caption: caption || ""
         }
 
         await fetch(whapiImageUrl, {
@@ -44,7 +42,6 @@ export async function sendImageMessage(phoneNumber: string, imageUrl: string) {
             body: JSON.stringify(payload)
         })
     }catch(error){
-        console.log(error)
     }
 }
 
@@ -61,7 +58,6 @@ export async function sendButtonMessage(payload) {
         })
         
     }catch(error){
-        console.log(error)
     }
 }
 

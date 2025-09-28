@@ -4,10 +4,13 @@ import {
   initialMessageTemplate,
   congratulationsMessageTemplate,
   mainMenuMessageTemplate,
+  welcomeNewUserMessageTemplate,
+  newUserCongratulationsMessageTemplate,
+  recipientOnboardingCompleteTemplate,
 } from '@/lib/whapi_message_template';
 import { sendButtonMessage } from '@/lib/whapi';
 import jwt from 'jsonwebtoken';
-import { getBotIntentBySession, storeBotIntent } from '@/services/bot_intent_service';
+import { getBotIntentBySession, getBotIntentByMobile, storeBotIntent, updateBotIntent } from '@/services/bot_intent_service';
 import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_transaction';
 
 export async function handleAuth(message: any) {
@@ -25,33 +28,88 @@ export async function handleAuth(message: any) {
   let botIntent;
 
   try {
-    //console.log(fetchedUser);
+    // Check if this is a welcome flow completion
+    const pendingIntent = await getBotIntentByMobile(mobile);
+    const getStartedButton = message.reply?.buttons_reply?.id;
+    
+    if (pendingIntent && 
+        ((pendingIntent.intent === 'welcome_pending' && getStartedButton === 'ButtonsV3:welcome_get_started') ||
+         (pendingIntent.intent === 'recipient_pending' && getStartedButton === 'ButtonsV3:recipient_get_started'))) {
+      // User clicked "Get Started" from welcome message - create their account
+      const botToken = await generate3DayToken(mobile);
+      const newSessionToken = await generate5MinToken(mobile);
+      
+      const newUser = await authService.botLogin(
+        {
+          mobile_number: mobile,
+          name: message.from_name,
+          bot_token: botToken,
+          bot_session: newSessionToken,
+        },
+        session
+      );
+
+      // Update the existing welcome_pending intent to start state
+      await updateBotIntent(
+        pendingIntent._id,
+        {
+          bot_session: newSessionToken,
+          intent: 'start',
+          step: 0,
+          status: 'pending'
+        },
+        session
+      );
+      
+
+      await commitTransaction(session);
+
+      // Send appropriate congratulations message based on flow type
+      if (pendingIntent.intent === 'welcome_pending') {
+        const ctx = await newUserCongratulationsMessageTemplate(message.from_name, message.from);
+        await sendButtonMessage(ctx);
+      } else if (pendingIntent.intent === 'recipient_pending') {
+        // Send recipient onboarding completion message
+        const ctx = await recipientOnboardingCompleteTemplate(
+          message.from_name,
+          message.from,
+          pendingIntent.received_currency,
+          pendingIntent.received_amount,
+          pendingIntent.sender_name
+        );
+        await sendButtonMessage(ctx);
+      }
+      
+      // Update fetched user for return
+      fetchedUser = await userService.fetchUserByMobileBot(mobile);
+      botIntent = await getBotIntentBySession(newSessionToken);
+      
+      
+      return { success: true, botIntent, user: fetchedUser.data };
+    }
+
     if (!fetchedUser.success) {
-    const botToken = await generate3DayToken(mobile);
-    const sessionToken = await generate5MinToken(mobile);
-    //create user
-    const newUser = await authService.botLogin(
-      {
-        mobile_number: mobile,
-        name: message.from_name,
-        bot_token: botToken,
-        bot_session: sessionToken,
-      },
-      session
-    );
-
-    await storeBotIntent(
-      {
-        bot_session: sessionToken,
-        intent: 'start',
-      },
-      session
-    );
-
-    await commitTransaction(session);
-
-    const ctx = await initialMessageTemplate(message.from_name, message.from);
-    await sendButtonMessage(ctx);
+      // Send welcome message to new users first (without creating user yet)
+      const ctx = await welcomeNewUserMessageTemplate(message.from_name, message.from);
+      await sendButtonMessage(ctx);
+      
+      // Create a temporary bot intent to track the welcome state
+      const sessionToken = await generate5MinToken(mobile);
+      const storedIntent = await storeBotIntent(
+        {
+          bot_session: sessionToken,
+          intent: 'welcome_pending',
+          step: 0,
+          mobile_number: mobile,
+          name: message.from_name
+        },
+        session
+      );
+      
+      
+      await commitTransaction(session);
+      
+      return { success: true, botIntent: null, user: null };
   } else {
     const user = fetchedUser.data;
     const botToken = await verifyToken(user.bot_token);
@@ -62,18 +120,14 @@ export async function handleAuth(message: any) {
       if (sessionToken.valid) {
         botIntent = await getBotIntentBySession(user.bot_session); // <-- move this here
         if (botIntent?.status === 'pending') {
-          console.log('Session token is valid');
 
           const getStartedButton = message.reply?.buttons_reply?.id;
           if (getStartedButton === 'ButtonsV3:get_started') {
-            console.log('sending congrats message');
             const ctx = await congratulationsMessageTemplate(message.from_name, message.from);
-            console.log(ctx);
             await sendButtonMessage(ctx);
           }
         }
       } else {
-        console.log('Session token is invalid or intent not pending');
         // regenerate token + store new intent
         const newSessionToken = await generate5MinToken(mobile);
 

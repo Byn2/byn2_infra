@@ -1,13 +1,7 @@
 //@ts-nocheck
 import { getOrCreateUserTokenAccount, prepareUSDCAccount } from './solana';
 import { transfer } from '@solana/spl-token';
-import {
-  Connection,
-  clusterApiUrl,
-  Keypair,
-  PublicKey,
-  Transaction,
-} from '@solana/web3.js';
+import { Connection, clusterApiUrl, Keypair, PublicKey, Transaction } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 
 const cluster = process.env.CONNECTION_URL;
@@ -19,13 +13,12 @@ const TOKEN_ACCOUNT = new PublicKey(process.env.USDC_TOKEN_ACCOUNT);
 let keypair = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(byn2_keypair)));
 
 export async function transferUSDC(fromNumber, toNumber, amount) {
+  console.log('Transfer USDC from', fromNumber, 'to', toNumber, 'amount', amount);
   try {
     const fromUserAccount = await getOrCreateUserTokenAccount(fromNumber);
     const toUserAccount = await getOrCreateUserTokenAccount(toNumber);
 
-    let parsedAmount = Math.floor(
-      new BigNumber(amount).multipliedBy(10 ** 6).toNumber()
-    );
+    let parsedAmount = Math.floor(new BigNumber(amount).multipliedBy(10 ** 6).toNumber());
 
     await transfer(
       connection,
@@ -50,9 +43,7 @@ export async function makeDeposit(toNumber, amount) {
     const toUserAccount = await getOrCreateUserTokenAccount(toNumber);
 
     //let parsedAmount = Math.round(new BigNumber(amount).multipliedBy(10 ** 6).toNumber());
-    let parsedAmount = Math.floor(
-      new BigNumber(amount).multipliedBy(10 ** 6).toNumber()
-    );
+    let parsedAmount = Math.floor(new BigNumber(amount).multipliedBy(10 ** 6).toNumber());
 
     await transfer(
       connection,
@@ -77,9 +68,7 @@ export async function makeWithdraw(fromNumber, amount) {
     const fromUserAccount = await getOrCreateUserTokenAccount(fromNumber);
 
     //let parsedAmount = Math.round(new BigNumber(amount).multipliedBy(10 ** 6).toNumber());
-    let parsedAmount = Math.floor(
-      new BigNumber(amount).multipliedBy(10 ** 6).toNumber()
-    );
+    let parsedAmount = Math.floor(new BigNumber(amount).multipliedBy(10 ** 6).toNumber());
 
     await transfer(
       connection,
@@ -106,9 +95,7 @@ export async function sendUSDC(fromNumber, pubKey, amount) {
 
     // let parsedAmount = new BigNumber(amount).multipliedBy(10 ** 6).toNumber();
 
-    let parsedAmount = Math.floor(
-      new BigNumber(amount).multipliedBy(10 ** 6).toNumber()
-    );
+    let parsedAmount = Math.floor(new BigNumber(amount).multipliedBy(10 ** 6).toNumber());
 
     await transfer(
       connection,
@@ -152,9 +139,7 @@ export async function retrieveUSDC(fromNumber, amount) {
       }
     );
 
-    console.log(
-      `Successfully transferred ${amount} USDC from user account to main account.`
-    );
+    console.log(`Successfully transferred ${amount} USDC from user account to main account.`);
   } catch (error) {
     console.error('Error occurred during USDC retrieval: ', error.message);
   }

@@ -15,7 +15,6 @@ export async function handleCheckBalance(message: any, botIntent: any): Promise<
     const fetchedUser = await userService.fetchUserByMobileBot(mobile);
 
     if (!fetchedUser.success) {
-      console.log('User not found for check balance:', mobile);
       await abortTransaction(session);
       return;
     }

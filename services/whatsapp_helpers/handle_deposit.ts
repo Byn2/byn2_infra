@@ -142,7 +142,6 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
         //confirmation
       } else if (botIntent.step === 4) {
         const confirmBtn = extractButtonId(message);
-        console.log('confirmBtn', confirmBtn);
         if (confirmBtn === 'ButtonsV3:mm_confirm') {
           const payload = await monimeService.deposit(
             user,
@@ -172,9 +171,7 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
             await sendButtonMessage(ctx);
           }
 
-          console.log('You confirm payment');
         } else if (confirmBtn === 'ButtonsV3:cancel') {
-          console.log('You cancel payment');
           // Reset to main menu after cancel
           await updateBotIntent(
             botIntent._id,
@@ -190,9 +187,7 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
         //generate USSD and send
       }
     } else if (method === 'ListV3:do2' || botIntent.intent_option === 'crypto') {
-      console.log('Crypto selected');
     } else if (method === 'ListV3:do3' || botIntent.intent_option === 'bank_transfer') {
-      console.log('Bank transfer selected');
     } else {
     }
   }
