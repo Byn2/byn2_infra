@@ -1,6 +1,5 @@
-// @ts-nocheck
-//@ts-check
 import Notification from '../models/notification';
+import { INotification } from '../types/notification';
 
 /**
  * Fetches notifications for a specified notifiable entity.
@@ -11,7 +10,11 @@ import Notification from '../models/notification';
  * @returns A promise that resolves to an array of notification documents.
  */
 
-export async function fetchNotifications(id: string, tableName: string, limit: number) {
+export async function fetchNotifications(
+  id: string,
+  tableName: string,
+  limit: number
+): Promise<INotification[]> {
   const notifications = await Notification.find({
     notifiable: { type: tableName, id: id },
   })
@@ -30,7 +33,7 @@ export async function fetchNotifications(id: string, tableName: string, limit: n
  * @param options - The options to pass to the underlying Model.save method.
  * @returns A promise that resolves to the saved notification document.
  */
-export async function storeNotification(data: any, options = {}) {
+export async function storeNotification(data: any, options = {}): Promise<void> {
   const notification = new Notification(data);
   await notification.save(options);
 }

@@ -1,7 +1,7 @@
-//@ts-check
-import mongoose from 'mongoose';
+import mongoose, { Model } from 'mongoose';
+import { IFundRequest } from '../types/fundRequest';
 
-const fundRequestSchema = new mongoose.Schema(
+const fundRequestSchema = new mongoose.Schema<IFundRequest>(
   {
     from_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -34,5 +34,7 @@ const fundRequestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const FundRequest: Model<IFundRequest> =
+  mongoose.models.FundRequest || mongoose.model<IFundRequest>('FundRequest', fundRequestSchema);
 
-export default mongoose.models.FundRequest || mongoose.model('FundRequest', fundRequestSchema);
+export default FundRequest;

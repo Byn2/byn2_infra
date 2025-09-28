@@ -363,13 +363,23 @@ export async function webhook(body: MonimeWebhookPayload, session: any): Promise
   const amount = txt.amount;
   const user = await userService.fetchUserById(txt.from_id);
 
+  // Check if user fetch was successful
+  if (!user || ('success' in user && !user.success)) {
+    return;
+  }
+
   if (txt.platform === 'whatsapp' && txt.status !== 'completed') {
     if (status === 'completed') {
       await walletService.deposit(user, { amount }, session, status);
       //update the transaction
       await transactionService.updateTransaction(txt._id, { status: status }, session);
-      const phoneNumber = user.mobile_number.replace('+', '');
-      const ctx = await depositSuccessMessageTemplate(user.name, user.mobile_number, amount, 'Le');
+      const phoneNumber = (user as any).mobile_number.replace('+', '');
+      const ctx = await depositSuccessMessageTemplate(
+        (user as any).name,
+        (user as any).mobile_number,
+        amount,
+        'Le'
+      );
       await sendTextMessage(phoneNumber, ctx);
     } else if (status === 'processing' && txt.status == 'pending') {
       await transactionService.updateTransaction(txt._id, { status: status }, session);
@@ -387,9 +397,9 @@ export async function webhook(body: MonimeWebhookPayload, session: any): Promise
       await transactionService.updateTransaction(txt._id, { status: status }, session);
       //send push notification
 
-      console.log('Make teh websocket:', user._d);
+      console.log('Make teh websocket:', (user as any)._id);
 
-      // await walletUpdateSocket(user._d, { amount: 0, recipient: 0 });
+      // await walletUpdateSocket((user as any)._id, { amount: 0, recipient: 0 });
 
       console.log('Make the notification after web socket');
 

@@ -1,7 +1,7 @@
+import mongoose, { Schema, Model } from 'mongoose';
+import { INotification } from '../types/notification';
 
-import mongoose, { Schema } from 'mongoose';
-
-const notificationSchema = new mongoose.Schema(
+const notificationSchema = new mongoose.Schema<INotification>(
   {
     title: {
       type: String,
@@ -30,4 +30,8 @@ const notificationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.Notifications || mongoose.model('Notifications', notificationSchema);
+const Notification: Model<INotification> =
+  mongoose.models.Notifications ||
+  mongoose.model<INotification>('Notifications', notificationSchema);
+
+export default Notification;

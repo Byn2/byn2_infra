@@ -4,10 +4,7 @@ import * as userService from './user_service';
 import * as currencyService from './currency_service';
 import * as walletService from './wallet_service';
 import { currencyConverter } from '../lib/helpers';
-import {
-  notifyFundRequest,
-  notifyFundRequestStatus,
-} from '../notifications/fcm_notification';
+import { notifyFundRequest, notifyFundRequestStatus } from '../notifications/fcm_notification';
 
 export async function fetchById(id: any) {
   const fundRequest = await fundRequestRepo.fetchById(id);
@@ -19,7 +16,7 @@ export async function fetchByFromIDOrToID(user: any) {
   const fundRequests = await fundRequestRepo.fetchByFromIDOrToID(user._id);
 
   const convertedRequests = await Promise.all(
-    fundRequests.map(async (request) => {
+    fundRequests.map(async request => {
       const convertedAmount = await currencyConverter(
         request.amount,
         request.base_currency,
@@ -56,7 +53,7 @@ export async function storeFundRequest(user: any, data: any, session: any) {
   await fundRequestRepo.storeFundRequest(
     {
       from_id: user._id,
-      to_id: toUser._id,
+      to_id: (toUser as any)._id,
       base_currency: sendCurrency,
       reason: reason,
       amount: amount,
@@ -65,11 +62,7 @@ export async function storeFundRequest(user: any, data: any, session: any) {
   );
 
   //convert the amount to receiver base currency
-  const convertedAmount = await currencyConverter(
-    amount,
-    sendCurrency,
-    toCurrency
-  );
+  const convertedAmount = await currencyConverter(amount, sendCurrency, toCurrency);
 
   // // //send notification
   await notifyFundRequest(user, toUser, convertedAmount, toCurrency, session);
@@ -79,7 +72,7 @@ export async function storeFundRequest(user: any, data: any, session: any) {
 
 export async function updateFundRequest(user: any, data: any, session: any) {
   const { id, status } = data;
-  
+
   const fundRequest = await fundRequestRepo.fetchById(id);
 
   if (!fundRequest) {
@@ -92,7 +85,6 @@ export async function updateFundRequest(user: any, data: any, session: any) {
   // ) {
   //   return { success: false, error: 'Unauthorized' };
   // }
-
 
   if (fundRequest.status !== 'pending') {
     return { success: false, error: 'Request already processed' };
@@ -111,18 +103,14 @@ export async function updateFundRequest(user: any, data: any, session: any) {
     await walletService.transfer(
       user,
       {
-        tag: sender.tag,
+        identifier: (sender as any).tag,
         amount: fundRequest.amount,
         reason: fundRequest.reason,
       },
       { session }
     );
 
-    await fundRequestRepo.updateFundRequest(
-      id,
-      { status: 'accepted' },
-      { session }
-    );
+    await fundRequestRepo.updateFundRequest(id, { status: 'accepted' }, { session });
 
     //send push notification
     // await notifyFundRequestStatus(
@@ -136,11 +124,7 @@ export async function updateFundRequest(user: any, data: any, session: any) {
 
     return { success: true, message: 'Request accepted' };
   } else {
-    await fundRequestRepo.updateFundRequest(
-      id,
-      { status: 'rejected' },
-      session
-    );
+    await fundRequestRepo.updateFundRequest(id, { status: 'rejected' }, session);
     //send push notification
     // await notifyFundRequestStatus(
     //   user,
