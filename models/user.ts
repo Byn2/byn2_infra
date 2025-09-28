@@ -1,10 +1,9 @@
-//@ts-nocheck
-//@ts-ignore
-import mongoose from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import slugify from 'slugify';
 import bcrypt from 'bcrypt';
+import { IUser } from '../types/user';
 
-const userSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema<IUser>(
   {
     image: { type: String, default: '' },
     name: {
@@ -27,13 +26,13 @@ const userSchema = new mongoose.Schema(
       required: function () {
         return this.auth_provider === 'local';
       },
-      
+
       default: null, // allow password to be null for external providers
     },
     auth_provider: {
       type: String,
       required: true,
-      enum: ['local','custom', 'google', 'facebook'],
+      enum: ['local', 'custom', 'google', 'facebook'],
       default: 'local',
     },
     currency_id: {
@@ -41,12 +40,12 @@ const userSchema = new mongoose.Schema(
       ref: 'Currency',
       required: [true, 'Currency ID is required'],
     },
-    mobile_verified_at: { type: Date, default: '' },
-    mobile_verify_code: { type: Number, default: '' },
+    mobile_verified_at: { type: Date, default: null },
+    mobile_verify_code: { type: Number, default: 0 },
     mobile_attempts_left: { type: Number, default: 4 },
-    mobile_last_attempt_date: { type: Date, default: '' },
-    mobile_verify_code_sent_at: { type: Date, default: '' },
-    mobile_kyc_verified_at: { type: Date, default: '' },
+    mobile_last_attempt_date: { type: Date, default: null },
+    mobile_verify_code_sent_at: { type: Date, default: null },
+    mobile_kyc_verified_at: { type: Date, default: null },
     rememberToken: { type: String, default: null },
     fcm_token: { type: String, default: '' },
 
@@ -73,8 +72,8 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.pre('save', async function (next) {
-  const user = this;
+userSchema.pre<IUser>('save', async function (next) {
+  const user = this as IUser;
 
   // Skip password hashing if it's not provided (e.g., Google/Facebook signups)
   if (user.isModified('password') && user.password) {
@@ -125,5 +124,6 @@ userSchema.methods.isValidPassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-export default mongoose.models.User || mongoose.model('User', userSchema);
+const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
 
+export default User;

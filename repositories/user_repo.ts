@@ -1,6 +1,5 @@
-// @ts-nocheck
-//@ts-check
-import User from "../models/user";
+import User from '../models/user';
+import { IUser } from '../types/user';
 
 const projection = {
   name: 1,
@@ -18,9 +17,9 @@ const projection = {
 /**
  * Retrieves all users from the database.
  *
- * @returns {Promise<User[]>} - The list of users.
+ * @returns {Promise<IUser[]>} - The list of users.
  */
-export async function fetchAllUsers() {
+export async function fetchAllUsers(): Promise<IUser[]> {
   return await User.find();
 }
 
@@ -28,12 +27,10 @@ export async function fetchAllUsers() {
  * Retrieves a user by its ID.
  *
  * @param {string} id - The ID of the user to fetch.
- * @returns {Promise<User | null>} - The user document if found, or `null` if not.
+ * @returns {Promise<IUser | null>} - The user document if found, or `null` if not.
  */
-export async function findUserById(id: string) {
-  const user = await User.findById(id)
-    .select(projection)
-    .populate("currency_id");
+export async function findUserById(id: string): Promise<IUser | null> {
+  const user = await User.findById(id).select(projection).populate('currency_id');
   return user;
 }
 
@@ -41,12 +38,12 @@ export async function findUserById(id: string) {
  * Retrieves a user by its mobile number.
  *
  * @param {string} mobile - The mobile number to search for.
- * @returns {Promise<User | null>} - The user document if found, or `null` if not.
+ * @returns {Promise<IUser | null>} - The user document if found, or `null` if not.
  */
-export async function findUserByMobile(mobile: string | number) {
+export async function findUserByMobile(mobile: string | number): Promise<IUser | null> {
   const user = await User.findOne({ mobile_number: mobile })
     .select(projection)
-    .populate("currency_id");
+    .populate('currency_id');
   return user;
 }
 
@@ -54,16 +51,14 @@ export async function findUserByMobile(mobile: string | number) {
  * Retrieves a user by its tag.
  *
  * @param {string} tag - The tag to search for.
- * @returns {Promise<User | null>} - The user document if found, or `null` if not.
+ * @returns {Promise<IUser | null>} - The user document if found, or `null` if not.
  */
-export async function findUserByTag(tag: string) {
-  const user = await User.findOne({ tag: tag })
-    .select(projection)
-    .populate("currency_id");
+export async function findUserByTag(tag: string): Promise<IUser | null> {
+  const user = await User.findOne({ tag: tag }).select(projection).populate('currency_id');
   return user;
 }
 
-export async function findUserByTagOrMobile(identifier) {
+export async function findUserByTagOrMobile(identifier: string): Promise<IUser | null> {
   const user = await User.findOne({
     $or: [{ tag: identifier }, { mobile_number: identifier }],
   })
@@ -76,12 +71,10 @@ export async function findUserByTagOrMobile(identifier) {
  * Checks if a user with the given tag exists.
  *
  * @param {string} tag - The tag to check.
- * @returns {Promise<User | null>} - The user document if found, or `null` if not.
+ * @returns {Promise<IUser | null>} - The user document if found, or `null` if not.
  */
-export async function checkTag(tag: string) {
-  const user = await User.findOne({ tag: tag })
-    .select(projection)
-    .populate("currency_id");
+export async function checkTag(tag: string): Promise<IUser | null> {
+  const user = await User.findOne({ tag: tag }).select(projection).populate('currency_id');
   return user;
 }
 
@@ -91,13 +84,16 @@ export async function checkTag(tag: string) {
  *
  * @param {string[]} phoneNumbers - The phone numbers to search for.
  * @param {string} authUserId - The ID of the user to exclude from the search.
- * @returns {Promise<User[]>} - The list of matching users.
+ * @returns {Promise<IUser[]>} - The list of matching users.
  */
-export async function findMatchingUsersByPhoneNumber(phoneNumbers: string[], authUserId: string) {
+export async function findMatchingUsersByPhoneNumber(
+  phoneNumbers: string[],
+  authUserId: string
+): Promise<IUser[]> {
   return await User.find({
     _id: { $ne: authUserId }, // Exclude authenticated user
     mobile_number: { $in: phoneNumbers },
-  }).populate("currency_id");
+  }).populate('currency_id');
 }
 
 /**
@@ -108,7 +104,7 @@ export async function findMatchingUsersByPhoneNumber(phoneNumbers: string[], aut
  * @returns A promise that resolves to the saved user document.
  */
 
-export async function storeUser(data, options = {}) {
+export async function storeUser(data: any, options = {}): Promise<IUser> {
   const user = new User(data);
   return await user.save(options);
 }
@@ -119,10 +115,9 @@ export async function storeUser(data, options = {}) {
  * @param {string} id - The ID of the user to update.
  * @param {Object} data - The data to update the user with.
  * @param {Object} [options={}] - Optional settings for updating the user.
- * @returns {Promise<User>} - A promise that resolves to the updated user document.
+ * @returns {Promise<IUser | null>} - A promise that resolves to the updated user document.
  */
-
-export async function updateUser(id: string, data, options = {}) {
+export async function updateUser(id: string, data: any, options = {}): Promise<IUser | null> {
   const user = await User.findByIdAndUpdate(id, data, {
     new: true,
     ...options,
@@ -131,7 +126,7 @@ export async function updateUser(id: string, data, options = {}) {
   return user;
 }
 
-export async function removeUser(id: string, options = {}) {
+export async function removeUser(id: string, options = {}): Promise<IUser | null> {
   return await User.findByIdAndDelete(id, options);
 }
 
@@ -140,11 +135,8 @@ export async function removeUser(id: string, options = {}) {
  *
  * @param {Object} query - The query to filter users with.
  * @param {number} limit - The maximum number of users to retrieve.
- * @returns {Promise<User[]>} - The list of matching users.
+ * @returns {Promise<IUser[]>} - The list of matching users.
  */
-export async function searchUsersByQuery(query: object, limit: number) {
-  return await User.find(query)
-    .select(projection)
-    .populate("currency_id")
-    .limit(limit);
+export async function searchUsersByQuery(query: object, limit: number): Promise<IUser[]> {
+  return await User.find(query).select(projection).populate('currency_id').limit(limit);
 }

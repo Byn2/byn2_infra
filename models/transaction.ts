@@ -1,4 +1,5 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Model } from 'mongoose';
+import { ITransaction } from '../types/transaction';
 
 const OtpVerificationSchema = new Schema({
   code: { type: String, required: true },
@@ -7,17 +8,17 @@ const OtpVerificationSchema = new Schema({
   verified: { type: Boolean, default: false },
 });
 
-const TransactionSchema = new Schema(
+const TransactionSchema = new Schema<ITransaction>(
   {
     // Transaction parties (either individuals or businesses)
     from_id: {
       type: Schema.Types.ObjectId,
-      ref: "User",
-      required: [true, "Sender ID is required"],
+      ref: 'User',
+      required: [true, 'Sender ID is required'],
     },
     to_id: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
 
     // Core financials
@@ -32,23 +33,23 @@ const TransactionSchema = new Schema(
         default: 'USD',
       },
     },
-    currency: { type: String, default: "USD" },
+    currency: { type: String, default: 'USD' },
 
     // Transaction intent
     type: {
       type: String,
       enum: [
-        "deposit",
-        "withdraw",
-        "transfer",
-        "payment",
-        "staking",
-        "unstaking",
-        "reward",
-        "crypto",
-        "direct_transfer",
-        "direct_withdraw",
-        "direct_deposit",
+        'deposit',
+        'withdraw',
+        'transfer',
+        'payment',
+        'staking',
+        'unstaking',
+        'reward',
+        'crypto',
+        'direct_transfer',
+        'direct_withdraw',
+        'direct_deposit',
       ],
       required: true,
     },
@@ -56,40 +57,40 @@ const TransactionSchema = new Schema(
     status: {
       type: String,
       enum: [
-        "pending",
-        "processing",
-        "success",
-        "completed",
-        "failed",
-        "refunded",
-        "cancelled",
-        "expired",
-        "initialized",
+        'pending',
+        'processing',
+        'success',
+        'completed',
+        'failed',
+        'refunded',
+        'cancelled',
+        'expired',
+        'initialized',
       ],
-      default: "pending",
+      default: 'pending',
     },
 
     // Contextual and technical metadata
     reason: { type: String },
     reference: { type: String },
-    ussd: { type: String, default: "" },
-    receiving_number: { type: String, default: "" },
+    ussd: { type: String, default: '' },
+    receiving_number: { type: String, default: '' },
 
     source: { type: String }, // e.g. "web", "app", "POS", "whatsapp"
     provider: {
       type: String,
-      enum: ["monime", "stripe", "byn2", "crypto"],
-      default: "byn2",
+      enum: ['monime', 'stripe', 'byn2', 'crypto'],
+      default: 'byn2',
     },
     paymentMethod: {
       type: String,
-      enum: ["wallet", "bank", "crypto"],
-      default: "wallet",
+      enum: ['wallet', 'bank', 'crypto'],
+      default: 'wallet',
     },
     platform: {
       type: String,
-      enum: ["web", "mobile", "whatsapp",],
-      default: "web",
+      enum: ['web', 'mobile', 'whatsapp'],
+      default: 'web',
     },
     // Exchange data (if cross-currency)
     exchange_rate: {
@@ -110,5 +111,7 @@ const TransactionSchema = new Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.Transaction ||
-  mongoose.model("Transaction", TransactionSchema);
+const Transaction: Model<ITransaction> =
+  mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema);
+
+export default Transaction;

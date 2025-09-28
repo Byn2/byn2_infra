@@ -1,6 +1,5 @@
-// @ts-nocheck
-//@ts-check
 import FundRequest from '../models/fundRequest';
+import { IFundRequest } from '../types/fundRequest';
 
 const projection = {
   name: 1,
@@ -16,9 +15,9 @@ const projection = {
  * Fetch all fund requests that involve a given user (either sender or recipient).
  *
  * @param {string} id - The ID of the user to fetch requests for.
- * @returns {Promise<FundRequest[]>} - The list of fund requests.
+ * @returns {Promise<IFundRequest[]>} - The list of fund requests.
  */
-export async function fetchByFromIDOrToID(id: string) {
+export async function fetchByFromIDOrToID(id: string): Promise<IFundRequest[]> {
   const fundRequests = await FundRequest.find({
     $or: [{ from_id: id }, { to_id: id }],
   })
@@ -47,9 +46,9 @@ export async function fetchByFromIDOrToID(id: string) {
  * Fetch a fund request by its ID.
  *
  * @param {string} id - The ID of the fund request to fetch.
- * @returns {Promise<FundRequest | null>} - The fund request if found, or `null` if not.
+ * @returns {Promise<IFundRequest | null>} - The fund request if found, or `null` if not.
  */
-export async function fetchById(id: string) {
+export async function fetchById(id: string): Promise<IFundRequest | null> {
   const fundRequest = await FundRequest.findById(id)
     .populate({ path: 'from_id', select: projection })
     .populate({ path: 'to_id', select: projection });
@@ -75,9 +74,13 @@ export async function storeFundRequest(data: any, options = {}) {
  * @param {string} id - The ID of the fund request to update.
  * @param {object} data - The data to update the fund request with.
  * @param {object} [options={}] - Optional settings for updating the fund request.
- * @returns {Promise<FundRequest>} - A promise that resolves to the updated fund request.
+ * @returns {Promise<IFundRequest | null>} - A promise that resolves to the updated fund request.
  */
-export async function updateFundRequest(id: string, data: any, options = {}) {
+export async function updateFundRequest(
+  id: string,
+  data: any,
+  options = {}
+): Promise<IFundRequest | null> {
   const fundRequest = await FundRequest.findByIdAndUpdate(id, data, {
     new: true,
     ...options,

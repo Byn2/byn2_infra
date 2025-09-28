@@ -1,5 +1,6 @@
 import * as userService from './user_service';
 import User from '../models/user';
+import { IUser } from '../types/user';
 import * as walletService from './wallet_service';
 import * as currencyService from './currency_service';
 import { getCountryCurrency } from '../lib/helpers';
@@ -79,7 +80,9 @@ export async function registerUser(data, session) {
  * @param {{ email: string, password: string }} data - The user's mobile number and password.
  * @returns {Promise<{ success: boolean, error?: string, user?: User}>} - The user document if authentication was successful, or an error message if not.
  */
-export async function loginUser(data) {
+export async function loginUser(
+  data: any
+): Promise<{ success: boolean; error?: string; user?: IUser }> {
   await connectDB();
 
   const { email, password } = data;
@@ -101,10 +104,10 @@ export async function loginUser(data) {
   return { success: true, user };
 }
 
-export async function OtpLogin(email, session) {
+export async function OtpLogin(email: string, session: any): Promise<IUser | null> {
   await connectDB();
 
-  let user = await User.findOne({ mobile_number: email });
+  let user: IUser | null = await User.findOne({ mobile_number: email });
 
   if (!user) {
     const defaultName = email;
@@ -120,7 +123,7 @@ export async function OtpLogin(email, session) {
       session
     );
 
-    user = await userService.storeUser(
+    const newUser = await userService.storeUser(
       {
         name: defaultName,
         mobile_number: email,
@@ -129,6 +132,7 @@ export async function OtpLogin(email, session) {
       },
       session
     );
+    user = newUser;
   }
 
   // Generate OTP
@@ -290,16 +294,18 @@ export async function resendOTP(user, session) {
   return { success: true, message: 'OTP has been sent' };
 }
 
-export async function sendNewOtp(number: string, session) {
+export async function sendNewOtp(number: string, session: any) {
   //generate 6 digit random number
   let code = Math.floor(100000 + Math.random() * 900000);
 
   //find user by number
-  const user = await userService.fetchUserByMobile(number);
+  const userResult = await userService.fetchUserByMobile(number);
 
-  if (!user) {
+  if (!userResult || 'success' in userResult) {
     return { success: false, message: 'Phone number not found.' };
   }
+
+  const user = userResult as IUser;
 
   await sendSMSNotification(user.mobile_number, `B-${code} is your verification code.`);
 
@@ -355,13 +361,15 @@ export async function resetPwdOTPVerify(number, code, session) {
   return { success: true, message: 'Mobile number successfully verified.' };
 }
 
-export async function changePassword(number, newPassword, session) {
+export async function changePassword(number: string, newPassword: string, session: any) {
   //find user by number
-  const user = await userService.fetchUserByMobile(number);
+  const userResult = await userService.fetchUserByMobile(number);
 
-  if (!user) {
+  if (!userResult || 'success' in userResult) {
     return { success: false, message: 'Phone number not found.' };
   }
+
+  const user = userResult as IUser;
 
   const salt = await bcrypt.genSalt(10);
   const pwd = await bcrypt.hash(newPassword, salt);
