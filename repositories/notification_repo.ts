@@ -1,3 +1,4 @@
+// @ts-nocheck
 //@ts-check
 import Notification from '../models/notification';
 

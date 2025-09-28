@@ -37,7 +37,7 @@ interface Transaction {
 export default function TransactionDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
   //   const { toast } = useToast()
@@ -46,18 +46,21 @@ export default function TransactionDetailsPage({
   const [relatedTransactions, setRelatedTransactions] = useState<Transaction[]>(
     []
   );
+  const [transactionId, setTransactionId] = useState<string>("");
 
   useEffect(() => {
     const fetchTransaction = async () => {
       try {
         setIsLoading(true);
+        const resolvedParams = await params;
+        setTransactionId(resolvedParams.id);
         // In a real app, you would fetch from your API
         // For demo purposes, we'll simulate data
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // Sample transaction data
         const sampleTransaction: Transaction = {
-          _id: params.id,
+          _id: resolvedParams.id,
           amount: 38000,
           fee: 950,
           currency: "USD",
@@ -121,7 +124,7 @@ export default function TransactionDetailsPage({
     };
 
     fetchTransaction();
-  }, [params.id]);
+  }, [params]);
 
   const handleDownloadReceipt = () => {
     // toast({
@@ -172,7 +175,7 @@ export default function TransactionDetailsPage({
             Transaction Details
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            View details for transaction #{params.id}
+            View details for transaction #{transactionId || 'Loading...'}
           </p>
         </div>
       </div>

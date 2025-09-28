@@ -391,6 +391,10 @@ export async function transfertMessageTemplateAmountStatusReceiver(
   }
 }
 
+export async function depositSuccessMessageTemplate(name, mobile, amount, currency) {
+  return `Hi ${name}, you successfully deposited ${amount} ${currency}`;
+}
+
 //withdraw
 
 //check balance

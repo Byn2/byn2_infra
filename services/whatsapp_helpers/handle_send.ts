@@ -115,6 +115,8 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
               },
               session
             );
+            // send message to the user that the transfer is successful
+            // send message to user that they received the money
             const ctx = await transfertMessageTemplateStatusSender(
               message.from_name,
               'Le',
@@ -221,6 +223,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
                   {
                     identifier: botIntent.number,
                     amount: botIntent.amount,
+                    platform: 'whatsapp',
                   },
                   session
                 );

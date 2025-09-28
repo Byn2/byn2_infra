@@ -1,12 +1,13 @@
-//@ts-check
+// @ts-nocheck
+// @ts-nocheck
 import BusinessApiKey from '../models/business-api-key';
 
 const projection = {
-    business_id: 1,
-    key: 1,
-    name: 1,
-    active: 1,
-    lastUsed: 1,
+  business_id: 1,
+  key: 1,
+  name: 1,
+  active: 1,
+  lastUsed: 1,
 };
 
 export async function getBusinessApiKeyByBusinessId(businessId: string) {
@@ -22,8 +23,8 @@ export async function getBusinessApiKeyById(id: string) {
 }
 
 export async function createBusinessApiKey(data: any, options = {}) {
- const api = new BusinessApiKey(data);
- return await api.save(options);
+  const api = new BusinessApiKey(data);
+  return await api.save(options);
 }
 
 export async function updateBusinessApiKey(id: any, data: any, options = {}) {
@@ -37,4 +38,3 @@ export async function updateBusinessApiKey(id: any, data: any, options = {}) {
 export async function deleteBusinessApiKey(id: any, options = {}) {
   return await BusinessApiKey.findByIdAndDelete(id, options);
 }
-

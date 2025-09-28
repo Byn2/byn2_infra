@@ -75,7 +75,7 @@ const TransactionSchema = new Schema(
     ussd: { type: String, default: "" },
     receiving_number: { type: String, default: "" },
 
-    source: { type: String }, // e.g. "web", "app", "POS"
+    source: { type: String }, // e.g. "web", "app", "POS", "whatsapp"
     provider: {
       type: String,
       enum: ["monime", "stripe", "byn2", "crypto"],

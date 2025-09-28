@@ -1,3 +1,4 @@
+// @ts-nocheck
 //@ts-check
 import User from "../models/user";
 

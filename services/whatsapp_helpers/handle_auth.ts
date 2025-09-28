@@ -12,6 +12,14 @@ import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_
 
 export async function handleAuth(message: any) {
   const session = await startTransaction();
+  
+  // Validate message has required fields
+  if (!message || !message.from) {
+    console.error('Invalid message object: missing from field');
+    await abortTransaction(session);
+    return { success: false, botIntent: null, user: null };
+  }
+  
   const mobile = `+${message.from}`;
   let fetchedUser = await userService.fetchUserByMobileBot(mobile);
   let botIntent;

@@ -149,6 +149,7 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
             {
               amount: botIntent.amount,
               depositing_number: botIntent.number,
+              platform: 'whatsapp',
             },
             session
           );

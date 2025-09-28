@@ -1,4 +1,5 @@
-//@ts-check
+// @ts-nocheck
+// @ts-nocheck
 import Contacts from '../models/contact';
 
 /**

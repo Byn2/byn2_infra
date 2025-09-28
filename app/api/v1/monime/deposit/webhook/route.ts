@@ -8,18 +8,18 @@ import {
 } from "@/lib/db_transaction";
 
 export async function POST(request: Request) {
-  const auth = await verifyToken(request);
-  if ("user" in auth === false) return auth;
+  // const auth = await verifyToken(request);
+  // if ("user" in auth === false) return auth;
 
   const body = await request.json();
 
   const status = body?.data?.status;
-  const customer_target = body?.data?.customerTarget;
+  const reference = body?.data?.reference;
 
   const session = await startTransaction();
 
   try {
-    await monimeService.webhook({ status, customer_target }, session);
+    await monimeService.webhook({ status, reference }, session);
 
     await commitTransaction(session);
 

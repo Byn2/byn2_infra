@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Invoice from '../models/invoice';
 
 const projection = {

@@ -46,11 +46,7 @@ export async function init(body: any) {
     const botIntent = authResult.botIntent;
     
     if (botIntent.intent === 'start' && botIntent.step === 0) {
-      // Send main menu only if not already sent by auth handler
-      const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
-      await sendButtonMessage(ctx);
-
-      // Check if user selected from main menu
+      // Check if user selected from main menu first
       const mainMenuBtn = extractListId(message);
       if (mainMenuBtn) {
         if (mainMenuBtn === 'ListV3:d1') {
@@ -67,6 +63,10 @@ export async function init(body: any) {
           // Invalid main menu selection
           await handleInvalidInput(message, 'list');
         }
+      } else {
+        // Only send main menu if no selection was made
+        const ctx = await mainMenuMessageTemplate(message.from_name, message.from);
+        await sendButtonMessage(ctx);
       }
 
       // Handle "back to menu" button from coming soon message
