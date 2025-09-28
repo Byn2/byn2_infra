@@ -6,6 +6,7 @@ export async function getBotIntentBySession(session: String){
 
 export async function getBotIntentByMobile(mobile: String){
     return await BotIntentRepo.getBotIntentByMobile(mobile);
+    
 }
 
 export async function storeBotIntent(data: any, session: any){

@@ -10,7 +10,7 @@ const botIntentSchema = new mongoose.Schema(
     },
     intent: {
       type: String,
-      enum: ['deposit', 'transfer', 'withdraw', 'check_balance', 'start', 'welcome_pending', 'recipient_pending'],
+      enum: ['deposit', 'transfer', 'withdraw', 'check_balance', 'start', 'welcome_pending', 'recipient_pending', 'congratulation_sent'],
       default: 'start',
     },
     intent_option: {

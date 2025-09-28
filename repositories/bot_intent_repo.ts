@@ -19,7 +19,6 @@ export async function getBotIntentBySession(session: String) {
 }
 
 export async function getBotIntentByMobile(mobile: String) {
-  //@ts-ignore
   return await BotIntent.findOne({ mobile_number: mobile }, projection);
 }
 
