@@ -4,15 +4,43 @@ import { transfer } from '@solana/spl-token';
 import { Connection, clusterApiUrl, Keypair, PublicKey, Transaction } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 
-const cluster = process.env.CONNECTION_URL;
-const connection = new Connection(clusterApiUrl(cluster), 'confirmed');
-const byn2_keypair = process.env.BYN2_SECRET_KEY;
-const MINT = new PublicKey(process.env.USDC_MINT);
-const TOKEN_ACCOUNT = new PublicKey(process.env.USDC_TOKEN_ACCOUNT);
+// Initialize Solana variables only if environment variables are available
+let cluster: string | undefined;
+let connection: Connection | undefined;
+let byn2_keypair: string | undefined;
+let MINT: PublicKey | undefined;
+let TOKEN_ACCOUNT: PublicKey | undefined;
+let keypair: Keypair | undefined;
 
-let keypair = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(byn2_keypair)));
+try {
+  cluster = process.env.CONNECTION_URL;
+
+  if (cluster) {
+    connection = new Connection(clusterApiUrl(cluster), 'confirmed');
+  }
+
+  byn2_keypair = process.env.BYN2_SECRET_KEY;
+
+  if (process.env.USDC_MINT) {
+    MINT = new PublicKey(process.env.USDC_MINT);
+  }
+
+  if (process.env.USDC_TOKEN_ACCOUNT) {
+    TOKEN_ACCOUNT = new PublicKey(process.env.USDC_TOKEN_ACCOUNT);
+  }
+
+  if (byn2_keypair) {
+    keypair = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(byn2_keypair)));
+  }
+} catch (error) {
+  console.warn('Solana transfer configuration failed, some features may not work:', error);
+}
 
 export async function transferUSDC(fromNumber, toNumber, amount) {
+  if (!connection || !keypair) {
+    throw new Error('Solana configuration not properly initialized');
+  }
+
   console.log('Transfer USDC from', fromNumber, 'to', toNumber, 'amount', amount);
   try {
     const fromUserAccount = await getOrCreateUserTokenAccount(fromNumber);
@@ -39,6 +67,10 @@ export async function transferUSDC(fromNumber, toNumber, amount) {
 }
 
 export async function makeDeposit(toNumber, amount) {
+  if (!connection || !keypair || !TOKEN_ACCOUNT) {
+    throw new Error('Solana configuration not properly initialized');
+  }
+
   try {
     const toUserAccount = await getOrCreateUserTokenAccount(toNumber);
 
@@ -64,6 +96,10 @@ export async function makeDeposit(toNumber, amount) {
 }
 
 export async function makeWithdraw(fromNumber, amount) {
+  if (!connection || !keypair || !TOKEN_ACCOUNT) {
+    throw new Error('Solana configuration not properly initialized');
+  }
+
   try {
     const fromUserAccount = await getOrCreateUserTokenAccount(fromNumber);
 
@@ -89,6 +125,10 @@ export async function makeWithdraw(fromNumber, amount) {
 }
 
 export async function sendUSDC(fromNumber, pubKey, amount) {
+  if (!connection || !keypair) {
+    throw new Error('Solana configuration not properly initialized');
+  }
+
   try {
     const fromUserAccount = await getOrCreateUserTokenAccount(fromNumber);
     const receiverAccount = await prepareUSDCAccount(pubKey);
@@ -117,6 +157,10 @@ export async function sendUSDC(fromNumber, pubKey, amount) {
 }
 
 export async function retrieveUSDC(fromNumber, amount) {
+  if (!connection || !keypair || !TOKEN_ACCOUNT) {
+    throw new Error('Solana configuration not properly initialized');
+  }
+
   try {
     // Get the user's USDC token account
     const userTokenAccount = await getOrCreateUserTokenAccount(fromNumber);

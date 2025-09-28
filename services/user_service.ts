@@ -6,12 +6,20 @@ import bcrypt from 'bcrypt';
 import path from 'path';
 // import { deleteImage } from '../utils/aws-s3.js';
 import { Connection, clusterApiUrl } from '@solana/web3.js';
-import {connectDB} from '../lib/db'
+import { connectDB } from '../lib/db';
 
+// Initialize Solana connection only if environment variables are available
+let cluster: string | undefined;
+let connection: Connection | undefined;
 
-const cluster = process.env.CONNECTION_URL || 'devnet';
-
-const connection = new Connection(clusterApiUrl(cluster), 'confirmed');
+try {
+  cluster = process.env.CONNECTION_URL || 'devnet';
+  if (cluster) {
+    connection = new Connection(clusterApiUrl(cluster), 'confirmed');
+  }
+} catch (error) {
+  console.warn('Solana user service configuration failed, some features may not work:', error);
+}
 export async function fetchAllUsers() {
   await connectDB();
   const users = await userRepo.fetchAllUsers();
@@ -47,9 +55,8 @@ export async function fetchUserByMobileBot(mobile) {
   }
   return {
     success: true,
-    data: user
+    data: user,
   };
-  
 }
 
 export async function fetchUserByTagOrMobile(identifier: any) {
@@ -142,11 +149,7 @@ export async function searchUser(user, term, limit) {
 }
 
 export async function updateFcmToken(user, data, session) {
-  return await userRepo.updateUser(
-    user._id,
-    { fcm_token: data.fcm_token },
-    { session }
-  );
+  return await userRepo.updateUser(user._id, { fcm_token: data.fcm_token }, { session });
 }
 
 export async function uploadImage(user, filePath, session) {
@@ -197,20 +200,16 @@ export async function accountRemoveCheck(user, body) {
   // Check if user is under investigation (example flag in DB)
 
   // Determine if all checks passed
-  const canDelete = Object.values(deletionChecks).every((v) => v === true);
+  const canDelete = Object.values(deletionChecks).every(v => v === true);
 
   return {
     success: canDelete,
     deletionChecks,
-    message: canDelete
-      ? 'Account can be deleted'
-      : 'Account cannot be deleted. See failed checks.',
+    message: canDelete ? 'Account can be deleted' : 'Account cannot be deleted. See failed checks.',
   };
 }
 
 export async function removeAccount(user, body, session) {
-  
-
   const result = await accountRemoveCheck(user, body, session);
   if (!result.success) {
     return { success: false, message: result.message };
@@ -219,15 +218,20 @@ export async function removeAccount(user, body, session) {
   const deletionGracePeriodDays = 30;
   const now = new Date();
 
-  await userRepo.updateUser(user._id,{
-    account_deletion_requested: true,
-    deletion_requested_at: now,
-    deletion_scheduled_at: new Date(now.getTime() + deletionGracePeriodDays * 24 * 60 * 60 * 1000),
-  }, session);
+  await userRepo.updateUser(
+    user._id,
+    {
+      account_deletion_requested: true,
+      deletion_requested_at: now,
+      deletion_scheduled_at: new Date(
+        now.getTime() + deletionGracePeriodDays * 24 * 60 * 60 * 1000
+      ),
+    },
+    session
+  );
 
   return {
     success: true,
     message: `Account deletion has been requested. Your account will be deleted after ${deletionGracePeriodDays} days.`,
   };
-
 }

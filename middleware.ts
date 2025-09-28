@@ -1,16 +1,19 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import jwt from 'jsonwebtoken';
+
+// Force middleware to use Node.js runtime
+export const runtime = 'nodejs';
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
   // Check if the request is for a protected route
-  if (request.nextUrl.pathname.startsWith("/dashboard")) {
-    const token = request.cookies.get("auth_token")?.value;
+  if (request.nextUrl.pathname.startsWith('/dashboard')) {
+    const token = request.cookies.get('auth_token')?.value;
 
     // If no token, redirect to login
     if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL('/login', request.url));
     }
 
     try {
@@ -21,7 +24,7 @@ export function middleware(request: NextRequest) {
       return NextResponse.next();
     } catch (error) {
       // Token is invalid, redirect to login
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL('/login', request.url));
     }
   }
 
@@ -34,5 +37,5 @@ export function middleware(request: NextRequest) {
 
 // See "Matching Paths" below to learn more
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ['/dashboard/:path*'],
 };

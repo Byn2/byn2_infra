@@ -1,15 +1,14 @@
-import * as walletService from "@/services/wallet_service";
-import {
-  startTransaction,
-  commitTransaction,
-  abortTransaction,
-} from "@/lib/db_transaction";
-import { verifyToken } from "@/lib/middleware/verifyTokenApp";
-import { NextResponse } from "next/server";
+import * as walletService from '@/services/wallet_service';
+import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_transaction';
+import { verifyToken } from '@/lib/middleware/verifyTokenApp';
+import { NextResponse } from 'next/server';
+
+// Force this route to use Node.js runtime
+export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   const auth = await verifyToken(request);
-  if ("user" in auth === false) return auth;
+  if ('user' in auth === false) return auth;
 
   const body = await request.json();
 
@@ -26,14 +25,11 @@ export async function POST(request: Request) {
     await commitTransaction(session);
 
     return NextResponse.json(
-      { success: true, message: "Transfer successful", transaction: result },
+      { success: true, message: 'Transfer successful', transaction: result },
       { status: 201 }
     );
   } catch (error) {
     await abortTransaction(session);
-    return NextResponse.json(
-      { message: "Something went wrong", error },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Something went wrong', error }, { status: 500 });
   }
 }

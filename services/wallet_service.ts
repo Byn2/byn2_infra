@@ -23,12 +23,25 @@ import {
 import * as stakingService from './liquidity_providers_service';
 import { IUser } from '@/types/user';
 
-const cluster = process.env.CONNECTION_URL || 'devnet';
-const connection = new Connection(clusterApiUrl(cluster), 'confirmed');
+// Initialize Solana connection only if environment variables are available
+let cluster: string | undefined;
+let connection: Connection | undefined;
+
+try {
+  cluster = process.env.CONNECTION_URL || 'devnet';
+  if (cluster) {
+    connection = new Connection(clusterApiUrl(cluster), 'confirmed');
+  }
+} catch (error) {
+  console.warn('Solana wallet service configuration failed, some features may not work:', error);
+}
 
 export async function getWalletBalance(data: any) {
-  const address = await getOrCreateUserTokenAccount(data.mobile_number);
+  if (!connection) {
+    throw new Error('Solana connection not properly initialized');
+  }
 
+  const address = await getOrCreateUserTokenAccount(data.mobile_number);
   const balance = await connection.getTokenAccountBalance(address);
 
   return {
@@ -41,7 +54,11 @@ export async function createWallet(data: any) {
   await getOrCreateUserTokenAccount(data);
 }
 
-async function processRecipientIdentifier(identifier: string, amount: number, userCurrency: string) {
+async function processRecipientIdentifier(
+  identifier: string,
+  amount: number,
+  userCurrency: string
+) {
   let recipientUser = await userService.fetchUserByTagOrMobile(identifier);
   let recipientCurrency: string;
   let convertedAmount: number;
@@ -52,9 +69,9 @@ async function processRecipientIdentifier(identifier: string, amount: number, us
   } else {
     // User not in database - use default SLL currency and create temp user object
     recipientCurrency = 'SLL';
-    recipientUser = { 
+    recipientUser = {
       mobile_number: identifier,
-      name: identifier // Use identifier as name for users not in database
+      name: identifier, // Use identifier as name for users not in database
     };
   }
 
@@ -64,7 +81,7 @@ async function processRecipientIdentifier(identifier: string, amount: number, us
   return {
     recipientUser,
     recipientCurrency,
-    convertedAmount
+    convertedAmount,
   };
 }
 
@@ -163,7 +180,6 @@ async function processTransaction({
       await transactionService.storeTransations(transactionData, session);
     }
 
-
     //Send notifications if applicable
     if (type === 'transfer' && recipientUser && platform != 'whatsapp') {
       await notifyTransfer(user, recipientUser, amount, userCurrency, session);
@@ -214,7 +230,6 @@ async function processTransaction({
           },
           session
         );
-
       }
     }
 

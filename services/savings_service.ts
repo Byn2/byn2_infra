@@ -1,16 +1,34 @@
 //@ts-nocheck
 //@ts-ignore
 import { Connection, Keypair, PublicKey, clusterApiUrl } from '@solana/web3.js';
-import { getOrCreateUserTokenAccount } from '../utils/solana.js';
+import { getOrCreateUserTokenAccount } from '../lib/solana';
 
-const cluster = process.env.CONNECTION_URL;
-// @ts-ignore
-const mint = new PublicKey(process.env.USDC_MINT);
-const keypair = process.env.BYN2_SECRET_KEY;
-// @ts-ignore
-const connection = new Connection(clusterApiUrl(cluster), 'confirmed');
-// @ts-ignore
-let byn2_keypair = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(keypair)));
+// Initialize Solana variables only if environment variables are available
+let cluster: string | undefined;
+let mint: PublicKey | undefined;
+let keypair: string | undefined;
+let connection: Connection | undefined;
+let byn2_keypair: Keypair | undefined;
+
+try {
+  cluster = process.env.CONNECTION_URL;
+
+  if (process.env.USDC_MINT) {
+    mint = new PublicKey(process.env.USDC_MINT);
+  }
+
+  keypair = process.env.BYN2_SECRET_KEY;
+
+  if (cluster) {
+    connection = new Connection(clusterApiUrl(cluster), 'confirmed');
+  }
+
+  if (keypair) {
+    byn2_keypair = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(keypair)));
+  }
+} catch (error) {
+  console.warn('Solana savings service configuration failed, some features may not work:', error);
+}
 
 let LULO_API_KEY = process.env.FLEXLEND_API_KEY;
 
@@ -20,15 +38,18 @@ let LULO_API_KEY = process.env.FLEXLEND_API_KEY;
  * @returns {Promise<object>} The account details.
  */
 export async function fetchAccountDetails(user) {
-  const walletAddress = await getOrCreateUserTokenAccount(user.mobile_number);
+  if (!LULO_API_KEY) {
+    throw new Error('FlexLend API key not configured');
+  }
 
+  const walletAddress = await getOrCreateUserTokenAccount(user.mobile_number);
   const owner = new PublicKey(walletAddress);
 
   try {
     const response = await fetch('https://api.flexlend.fi/account', {
       method: 'GET',
       headers: {
-        'x-wallet-pubkey': owner,
+        'x-wallet-pubkey': owner.toString(),
         'x-api-key': LULO_API_KEY,
       },
     });
@@ -105,10 +126,6 @@ export async function makeDeposit(transaction) {
   return await connection.sendTransaction(tx);
 }
 
-export async function fetchWithdrawTransaction({
-  owner,
-  mintAddress,
-  withdrawAmount,
-}) {}
+export async function fetchWithdrawTransaction({ owner, mintAddress, withdrawAmount }) {}
 
 export async function makeWithdraw(transaction) {}
