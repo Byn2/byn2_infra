@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { connectDB } from "@/lib/db"
+import { ensureConnection } from "@/lib/db"
 import Transaction from "@/models/transaction"
 import { verifyToken } from "@/lib/middleware/verifyTokenApp";
 import * as walletService from "@/services/wallet_service";
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Transaction ID is required" }, { status: 400 })
     }
 
-    await connectDB()
+    await ensureConnection()
 
     // Find the transaction
     const transaction = await (Transaction as any).findById(id)

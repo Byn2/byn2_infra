@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import User from '@/models/user';
 import BusinessApiKey from '@/models/business-api-key';
 import { NextResponse } from 'next/server';
-import { connectDB } from '../db';
+import { ensureConnection } from '../db';
 
 const secret = process.env.SECRET_ACCESS_TOKEN || 'your-secret-key';
 
@@ -28,7 +28,7 @@ export async function verifyToken(request: Request) {
     const decoded = jwt.verify(token, process.env.SECRET_ACCESS_TOKEN!) as {
       id: string;
     };
-    connectDB();
+    await ensureConnection();
     const authUser = await (User as any).findById(decoded.id);
 
     if (!authUser) {
@@ -55,7 +55,7 @@ export async function authenticateApiKey(apiKey: string) {
   if (!apiKey) return null;
 
   try {
-    await connectDB();
+    await ensureConnection();
 
     // Find business by API key
     const business = await (BusinessApiKey as any).findOne({

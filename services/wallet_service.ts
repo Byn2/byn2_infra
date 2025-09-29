@@ -1,6 +1,7 @@
 //@ts-nocheck
 //@ts-ignore
 import { getOrCreateUserTokenAccount } from '../lib/solana';
+import { ensureConnection } from '../lib/db';
 import { Connection, clusterApiUrl } from '@solana/web3.js';
 import {
   transferUSDC,
@@ -37,6 +38,8 @@ try {
 }
 
 export async function getWalletBalance(data: any) {
+  await ensureConnection();
+
   if (!connection) {
     throw new Error('Solana connection not properly initialized');
   }
@@ -51,6 +54,7 @@ export async function getWalletBalance(data: any) {
 }
 
 export async function createWallet(data: any) {
+  await ensureConnection();
   await getOrCreateUserTokenAccount(data);
 }
 
@@ -59,6 +63,7 @@ async function processRecipientIdentifier(
   amount: number,
   userCurrency: string
 ) {
+  await ensureConnection();
   let recipientUser = await userService.fetchUserByTagOrMobile(identifier);
   let recipientCurrency: string;
   let convertedAmount: number;
@@ -217,7 +222,8 @@ async function processTransaction({
         const { generate5MinToken } = await import('./whatsapp_helpers/handle_auth');
 
         const sessionToken = await generate5MinToken(recipientUser.mobile_number);
-        const storedRecipientIntent = await storeBotIntent(
+        
+        await storeBotIntent(
           {
             bot_session: sessionToken,
             intent: 'recipient_pending',
@@ -231,6 +237,7 @@ async function processTransaction({
           session
         );
       }
+      
     }
 
     return {
@@ -284,6 +291,7 @@ export async function withdraw(user: any, data: any, session: any, externalStatu
 }
 
 export async function transferToPubKey(user: any, data: any, session: any) {
+  await ensureConnection();
   const { publicKey, amount } = data;
 
   if (!publicKey || typeof publicKey !== 'string') {
@@ -332,6 +340,7 @@ export async function transferToPubKey(user: any, data: any, session: any) {
 }
 
 export async function retriveUSDC() {
+  await ensureConnection();
   const users = await userService.fetchAllUsers();
   for (const user of users) {
     const address = await getOrCreateUserTokenAccount(user.mobile_number);

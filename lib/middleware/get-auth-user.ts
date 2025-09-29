@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import User from '@/models/user';
 import { NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db';
+import { ensureConnection } from '@/lib/db';
 
 export async function getAuthenticatedUser() {
   const token = (await cookies()).get('auth_token')?.value;
@@ -17,7 +17,7 @@ export async function getAuthenticatedUser() {
     const JWT_SECRET = process.env.SECRET_ACCESS_TOKEN || 'your-secret-key';
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
 
-    connectDB();
+    await ensureConnection();
     const authUser = await (User as any).findById(decoded.id);
 
     if (!authUser) {

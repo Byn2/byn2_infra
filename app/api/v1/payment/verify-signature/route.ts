@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { verifyPaymentSignature } from '@/lib/middleware/verifyTokenApp';
-import { connectDB } from '@/lib/db';
+import { ensureConnection } from '@/lib/db';
 import Transaction from '@/models/transaction';
 
 export async function POST(req: NextRequest) {
   try {
-    await connectDB();
+    await ensureConnection();
 
     const { signature } = await req.json();
 

@@ -6,7 +6,6 @@ import bcrypt from 'bcrypt';
 import path from 'path';
 // import { deleteImage } from '../utils/aws-s3.js';
 import { Connection, clusterApiUrl } from '@solana/web3.js';
-import { connectDB } from '../lib/db';
 
 // Initialize Solana connection only if environment variables are available
 let cluster: string | undefined;
@@ -21,13 +20,11 @@ try {
   console.warn('Solana user service configuration failed, some features may not work:', error);
 }
 export async function fetchAllUsers() {
-  await connectDB();
   const users = await userRepo.fetchAllUsers();
   return users;
 }
 
 export async function fetchUserById(id) {
-  await connectDB();
 
   const user = await userRepo.findUserById(id);
 
@@ -39,7 +36,6 @@ export async function fetchUserById(id) {
 }
 
 export async function fetchUserByMobile(mobile) {
-  await connectDB();
   const user = await userRepo.findUserByMobile(mobile);
   if (!user) {
     return { success: false, message: 'User not found' };
@@ -48,7 +44,6 @@ export async function fetchUserByMobile(mobile) {
 }
 
 export async function fetchUserByMobileBot(mobile) {
-  await connectDB();
   const user = await userRepo.findUserByMobile(mobile);
   if (!user) {
     return { success: false, message: 'User not found' };
@@ -60,7 +55,6 @@ export async function fetchUserByMobileBot(mobile) {
 }
 
 export async function fetchUserByTagOrMobile(identifier: any) {
-  await connectDB();
   const user = await userRepo.findUserByTagOrMobile(identifier);
   if (!user) {
     return null;
@@ -69,7 +63,6 @@ export async function fetchUserByTagOrMobile(identifier: any) {
 }
 
 export async function fetchUserByTag(tag: any) {
-  await connectDB();
   const user = await userRepo.findUserByTag(tag);
   if (!user) {
     return { success: false, message: 'User not found' };
@@ -78,25 +71,21 @@ export async function fetchUserByTag(tag: any) {
 }
 
 export async function checkTags(tag) {
-  await connectDB();
   const user = await userRepo.checkTag(tag);
   return !user;
 }
 
 export async function storeUser(data, session) {
-  await connectDB();
   const user = await userRepo.storeUser(data, session);
   return user;
 }
 
 export async function updateUser(id, data, session) {
-  await connectDB();
   const user = await userRepo.updateUser(id, data, session);
   return user;
 }
 
 export async function updatePassword(user, data, session) {
-  await connectDB();
   if (data.password !== data.password_confirmation) {
     return { success: false, message: 'Passwords do not match' };
   }
