@@ -10,9 +10,10 @@ if (!MONGODB_URI) {
 
 // Enhanced connection pooling configuration
 const connectionOptions = {
-    maxPoolSize: 10, // Maintain up to 10 socket connections
-    serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+    maxPoolSize: 20, // Increased from 10 to handle more concurrent connections
+    serverSelectionTimeoutMS: 15000, // Increased from 5000ms to 15000ms for webhook reliability
     socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+    bufferMaxEntries: 0, // Disable buffering to fail fast instead of queuing
     family: 4, // Use IPv4, skip trying IPv6
 };
 
@@ -54,9 +55,24 @@ export function isConnected(): boolean {
     return mongoose.connection.readyState === 1;
 }
 
-// Function to ensure connection before operations
-export async function ensureConnection() {
-    if (!isConnected()) {
-        await connectDB();
+// Function to ensure connection before operations with retry logic
+export async function ensureConnection(retries = 3): Promise<void> {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            if (!isConnected()) {
+                await connectDB();
+            }
+            return; // Success
+        } catch (error) {
+            console.error(`Connection attempt ${attempt} failed:`, error);
+            
+            if (attempt === retries) {
+                throw new Error(`Failed to establish database connection after ${retries} attempts`);
+            }
+            
+            // Exponential backoff: 1s, 2s, 4s
+            const delay = Math.pow(2, attempt - 1) * 1000;
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
     }
 }
