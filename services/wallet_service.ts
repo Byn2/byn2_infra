@@ -39,7 +39,7 @@ try {
 
 export async function getWalletBalance(data: any) {
   await ensureConnection();
-  
+
   if (!connection) {
     throw new Error('Solana connection not properly initialized');
   }
@@ -222,7 +222,8 @@ async function processTransaction({
         const { generate5MinToken } = await import('./whatsapp_helpers/handle_auth');
 
         const sessionToken = await generate5MinToken(recipientUser.mobile_number);
-        const storedRecipientIntent = await storeBotIntent(
+        
+        await storeBotIntent(
           {
             bot_session: sessionToken,
             intent: 'recipient_pending',
@@ -236,6 +237,7 @@ async function processTransaction({
           session
         );
       }
+      
     }
 
     return {
