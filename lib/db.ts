@@ -13,7 +13,7 @@ const connectionOptions = {
     maxPoolSize: 20, // Increased from 10 to handle more concurrent connections
     serverSelectionTimeoutMS: 15000, // Increased from 5000ms to 15000ms for webhook reliability
     socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-    bufferMaxEntries: 0, // Disable buffering to fail fast instead of queuing
+    bufferCommands: false, // Disable buffering to fail fast instead of queuing
     family: 4, // Use IPv4, skip trying IPv6
 };
 
