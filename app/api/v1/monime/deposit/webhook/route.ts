@@ -19,15 +19,21 @@ export async function POST(request: Request) {
   const session = await startTransaction();
 
   try {
-    await monimeService.webhook({ status, reference }, session);
-
+    // Add timeout wrapper for webhook operations
+    const webhookPromise = monimeService.webhook({ status, reference }, session);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Webhook operation timeout')), 30000)
+    );
+    
+    await Promise.race([webhookPromise, timeoutPromise]);
     await commitTransaction(session);
 
     return NextResponse.json({ status: 201 });
   } catch (error) {
     await abortTransaction(session);
+    console.error('Webhook error:', error);
     return NextResponse.json(
-      { message: "Something went wrong", error },
+      { message: "Something went wrong", error: error.message },
       { status: 500 }
     );
   }

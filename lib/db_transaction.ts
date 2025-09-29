@@ -3,11 +3,22 @@ import mongoose from 'mongoose';
 import { ensureConnection } from './db';
 
 export async function startTransaction() {
-  // Ensure connection before creating session
-  await ensureConnection();
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  return session;
+  try {
+    // Ensure connection with retry logic
+    await ensureConnection(3);
+    
+    // Verify connection is actually ready
+    if (mongoose.connection.readyState !== 1) {
+      throw new Error('Database connection not ready for transaction');
+    }
+    
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    return session;
+  } catch (error) {
+    console.error('Failed to start transaction:', error);
+    throw error;
+  }
 }
 
 // Function to commit a transaction
