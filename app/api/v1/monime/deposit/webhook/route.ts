@@ -1,6 +1,7 @@
 import * as monimeService from "@/services/monime_service";
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/middleware/verifyTokenApp";
+import { ensureConnection } from "@/lib/db";
 import {
   startTransaction,
   commitTransaction,
@@ -16,6 +17,7 @@ export async function POST(request: Request) {
   const status = body?.data?.status;
   const reference = body?.data?.reference;
 
+  await ensureConnection();
   const session = await startTransaction();
 
   try {
