@@ -271,13 +271,13 @@ export async function mmDepositMessageTemplateUSSDDifferentNumber(mobile, ussd) 
 
 //crypto
 
-export async function cryptoDepositMessageTemplate(mobile: string, walletAddress: string) {
+export async function cryptoDepositMessageTemplate(mobile: string, walletAddress: string, qrCodeUrl?: string | null) {
   return {
     header: {
       text: 'Crypto Deposit',
     },
     body: {
-      text: `💰 **Deposit USDC to your wallet**\n\n⚠️ **IMPORTANT WARNING:**\nThis account only receives USDC. Any other token sent here will be lost and won't be replaced.\n\n**Your Wallet Address:**\n${walletAddress}\n\nTap "Copy Address" below to copy your wallet address for the deposit.`,
+      text: `💰 **Deposit USDC to your wallet**\n\n⚠️ **IMPORTANT WARNING:**\nThis account only receives USDC. Any other token sent here will be lost and won't be replaced.\n\n**Your Wallet Address:**\n${walletAddress}\n\n${qrCodeUrl ? 'Scan the QR code above or tap "Copy Address" below to copy your wallet address for the deposit.' : 'Tap "Copy Address" below to copy your wallet address for the deposit.'}`,
     },
     footer: {
       text: 'Only send USDC to this address! 🔒',
@@ -293,8 +293,7 @@ export async function cryptoDepositMessageTemplate(mobile: string, walletAddress
       ],
     },
     type: 'button',
-    media:
-      'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    media: qrCodeUrl || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     to: mobile,
   };
 }
