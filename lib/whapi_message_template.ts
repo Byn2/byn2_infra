@@ -147,7 +147,7 @@ export async function depositMethodMessageTemplate(mobile) {
               {
                 id: 'do3',
                 title: 'Bank',
-                description: 'Deposit with bank',
+                description: 'Coming soon',
               },
             ],
           },
@@ -265,6 +265,36 @@ export async function mmDepositMessageTemplateUSSDDifferentNumber(mobile, ussd) 
       ],
     },
     type: 'button',
+    to: mobile,
+  };
+}
+
+//crypto
+
+export async function cryptoDepositMessageTemplate(mobile: string, walletAddress: string) {
+  return {
+    header: {
+      text: 'Crypto Deposit',
+    },
+    body: {
+      text: `💰 **Deposit USDC to your wallet**\n\n⚠️ **IMPORTANT WARNING:**\nThis account only receives USDC. Any other token sent here will be lost and won't be replaced.\n\n**Your Wallet Address:**\n${walletAddress}\n\nTap "Copy Address" below to copy your wallet address for the deposit.`,
+    },
+    footer: {
+      text: 'Only send USDC to this address! 🔒',
+    },
+    action: {
+      buttons: [
+        {
+          type: 'copy',
+          title: 'Copy Address',
+          id: 'copy_wallet_address',
+          copy_code: walletAddress,
+        },
+      ],
+    },
+    type: 'button',
+    media:
+      'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     to: mobile,
   };
 }
@@ -749,3 +779,5 @@ export async function recipientOnboardingCompleteTemplate(name: string, mobile: 
     to: mobile,
   };
 }
+
+
