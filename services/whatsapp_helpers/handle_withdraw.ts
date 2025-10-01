@@ -1,9 +1,280 @@
+import {
+  withdrawMethodMessageTemplate,
+  withdrawAmountMessageTemplate,
+  withdrawNumberMessageTemplate,
+  withdrawDifferentNumberMessageTemplate,
+  withdrawConfirmMessageTemplate,
+  withdrawSuccessMessageTemplate,
+  withdrawFailedMessageTemplate,
+} from '@/lib/whapi_message_template';
 import * as monimeService from '@/services/monime_service';
 import { sendButtonMessage, sendTextMessage } from '@/lib/whapi';
 import { updateBotIntent } from '@/services/bot_intent_service';
 import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_transaction';
+import {
+  isValidAmount,
+  isValidPhoneNumber,
+  extractButtonId,
+  extractListId,
+  extractTextInput,
+  sendValidationError,
+  handleInvalidInput,
+  handleComingSoonFeature,
+  isComingSoonFeature,
+} from '@/lib/whatsapp_utils';
 
 export async function handleWithdraw(message: any, botIntent: any, method?: any, user?: any) {
-    const session = await startTransaction();
+  const session = await startTransaction();
   const mobile = `+${message.from}`;
+
+  try {
+    // Send withdraw method options
+    if (botIntent.intent === 'start') {
+      await updateBotIntent(
+        botIntent._id,
+        {
+          intent: 'withdraw',
+          step: 1,
+        },
+        session
+      );
+      const ctx = await withdrawMethodMessageTemplate(message.from);
+      await sendButtonMessage(ctx);
+    } else if (botIntent.intent === 'withdraw') {
+      console.log('botIntent.intent', botIntent.intent);
+       console.log('method', method);
+      if (method === 'ListV3:wo1' || botIntent.intent_option === 'mobile_money') {
+       
+        // Mobile Money withdraw flow
+        if (method) {
+          await updateBotIntent(
+            botIntent._id,
+            {
+              intent_option: 'mobile_money',
+            },
+            session
+          );
+        }
+
+        if (botIntent.step === 0 || botIntent.step === 1) {
+          // Ask for amount
+          const ctx = await withdrawAmountMessageTemplate();
+          await sendTextMessage(message.from, ctx);
+
+          await updateBotIntent(
+            botIntent._id,
+            {
+              step: 2,
+            },
+            session
+          );
+        } else if (botIntent.step === 2) {
+          // Validate and store amount
+          const amt = extractTextInput(message);
+
+          if (!amt || !isValidAmount(amt)) {
+            await sendValidationError('amount', message.from);
+            await commitTransaction(session);
+            return;
+          }
+
+          await updateBotIntent(
+            botIntent._id,
+            {
+              step: 3,
+              amount: amt,
+            },
+            session
+          );
+
+          // Ask if withdrawing to self or different number
+          const ctx = await withdrawNumberMessageTemplate(message.from);
+          await sendButtonMessage(ctx);
+        } else if (botIntent.step === 3) {
+          // Handle recipient selection
+          const fundingAcct = extractButtonId(message);
+          
+          if (fundingAcct === 'ButtonsV3:self') {
+            const ctx = await withdrawConfirmMessageTemplate(
+              message.from_name,
+              message.from,
+              `+${message.from}`,
+              botIntent.amount
+            );
+            await sendButtonMessage(ctx);
+            
+            await updateBotIntent(
+              botIntent._id,
+              {
+                step: 4,
+                payer: 'self',
+                number: `+${message.from}`,
+              },
+              session
+            );
+          } else if (
+            fundingAcct === 'ButtonsV3:different_number' ||
+            botIntent.payer === 'different_number'
+          ) {
+            if (fundingAcct === 'ButtonsV3:different_number') {
+              await updateBotIntent(
+                botIntent._id,
+                {
+                  payer: 'different_number',
+                },
+                session
+              );
+              const ctx = await withdrawDifferentNumberMessageTemplate();
+              await sendTextMessage(message.from, ctx);
+            } else if (botIntent.payer === 'different_number' && botIntent.number === null) {
+              const number = extractTextInput(message);
+              
+              if (!number || !isValidPhoneNumber(number)) {
+                await sendValidationError('phone', message.from);
+                await commitTransaction(session);
+                return;
+              }
+
+              const ctx = await withdrawConfirmMessageTemplate(
+                message.from_name,
+                message.from,
+                number,
+                botIntent.amount
+              );
+              await sendButtonMessage(ctx);
+              
+              await updateBotIntent(
+                botIntent._id,
+                {
+                  step: 4,
+                  number: number,
+                },
+                session
+              );
+            } else {
+              await handleInvalidInput(message, 'button');
+              await commitTransaction(session);
+              return;
+            }
+          } else {
+            await handleInvalidInput(message, 'button');
+            await commitTransaction(session);
+            return;
+          }
+        } else if (botIntent.step === 4) {
+          // Handle confirmation
+          const confirmBtn = extractButtonId(message);
+          
+          if (confirmBtn === 'ButtonsV3:w_confirm') {
+            try {
+              // Process withdrawal
+              await monimeService.withdraw(
+                user,
+                {
+                  amount: botIntent.amount,
+                  receiving_number: botIntent.number,
+                  platform: 'whatsapp',
+                },
+                session
+              );
+
+              // Send success message
+              const successMsg = await withdrawSuccessMessageTemplate(
+                message.from_name,
+                message.from,
+                botIntent.amount,
+                'Le'
+              );
+              await sendTextMessage(message.from, successMsg);
+
+              await updateBotIntent(
+                botIntent._id,
+                {
+                  step: 5,
+                  status: 'success',
+                },
+                session
+              );
+            } catch (error) {
+              console.error('Withdrawal failed:', error);
+              
+              // Send failure message
+              const failureMsg = await withdrawFailedMessageTemplate(
+                message.from_name,
+                message.from,
+                botIntent.amount,
+                'Le'
+              );
+              await sendTextMessage(message.from, failureMsg);
+
+              await updateBotIntent(
+                botIntent._id,
+                {
+                  step: 5,
+                  status: 'failed',
+                },
+                session
+              );
+            }
+
+            // Reset bot intent to start state for next interaction
+            await updateBotIntent(
+              botIntent._id,
+              {
+                intent: 'start',
+                status: 'pending',
+                step: 0,
+                amount: null,
+                currency: null,
+                number: null,
+                payer: null,
+                intent_option: null,
+                ussd: "",
+              },
+              session
+            );
+          } else if (confirmBtn === 'ButtonsV3:cancel') {
+            // Reset to main menu after cancel
+            await updateBotIntent(
+              botIntent._id,
+              {
+                intent: 'start',
+                step: 0,
+              },
+              session
+            );
+          } else {
+            await handleInvalidInput(message, 'button');
+            await commitTransaction(session);
+            return;
+          }
+        }
+      } else if (method === 'ListV3:wo2' || botIntent.intent_option === 'moneygram') {
+        // MoneyGram coming soon
+        if (isComingSoonFeature('wo2') || method === 'ListV3:wo2') {
+          await handleComingSoonFeature('wo2', message, session);
+          
+          // Reset to main menu
+          await updateBotIntent(
+            botIntent._id,
+            {
+              intent: 'start',
+              step: 0,
+            },
+            session
+          );
+        }
+      } else {
+        await handleInvalidInput(message, 'list');
+        await commitTransaction(session);
+        return;
+      }
+    }
+
+    await commitTransaction(session);
+  } catch (error) {
+    console.error('Error in handleWithdraw:', error);
+    await abortTransaction(session);
+    throw error;
+  }
 }

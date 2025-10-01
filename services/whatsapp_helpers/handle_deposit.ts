@@ -6,8 +6,11 @@ import {
   mmDepositMessageTemplateDifferentNumber,
   mmDepositMessageTemplateUSSD,
   mmDepositMessageTemplateUSSDDifferentNumber,
+  cryptoDepositMessageTemplate,
+  comingSoonMessageTemplate,
 } from '@/lib/whapi_message_template';
 import * as monimeService from '@/services/monime_service';
+import * as walletService from '@/services/wallet_service';
 import { sendButtonMessage, sendTextMessage } from '@/lib/whapi';
 import { updateBotIntent } from '@/services/bot_intent_service';
 import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_transaction';
@@ -204,7 +207,60 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
         //generate USSD and send
       }
     } else if (method === 'ListV3:do2' || botIntent.intent_option === 'crypto') {
+      if (method) {
+        await updateBotIntent(
+          botIntent._id,
+          {
+            intent_option: 'crypto',
+          },
+          session
+        );
+      }
+
+      // Get user's wallet address
+      const walletData = await walletService.getWalletBalance(user);
+      
+      // Send crypto deposit template with wallet address
+      const ctx = await cryptoDepositMessageTemplate(message.from, walletData.address);
+      await sendButtonMessage(ctx);
+
+      // Reset bot intent to start state after showing deposit info
+      await updateBotIntent(
+        botIntent._id,
+        {
+          intent: 'start',
+          step: 0,
+          intent_option: null,
+        },
+        session
+      );
+
     } else if (method === 'ListV3:do3' || botIntent.intent_option === 'bank_transfer') {
+      if (method) {
+        await updateBotIntent(
+          botIntent._id,
+          {
+            intent_option: 'bank_transfer',
+          },
+          session
+        );
+      }
+
+      // Send coming soon message for bank transfer
+      const ctx = await comingSoonMessageTemplate('Bank Transfer Deposits', message.from);
+      await sendButtonMessage(ctx);
+
+      // Reset bot intent to start state after showing coming soon message
+      await updateBotIntent(
+        botIntent._id,
+        {
+          intent: 'start',
+          step: 0,
+          intent_option: null,
+        },
+        session
+      );
+
     } else {
     }
   }
