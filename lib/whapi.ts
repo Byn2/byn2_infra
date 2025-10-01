@@ -29,6 +29,7 @@ export async function sendImageMessage(phoneNumber: string, mediaUrl: string, ca
       to: phoneNumber,
       media: mediaUrl,
       caption: caption || '',
+      typing_time: 2,
     };
 
     await fetch(whapiImageUrl, {

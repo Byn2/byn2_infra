@@ -18,7 +18,7 @@ import { startTransaction, commitTransaction } from '@/lib/db_transaction';
 export function isGlobalCommand(text: string): boolean {
   if (!text) return false;
   const command = text.toLowerCase().trim();
-  return ['menu', 'restart', 'help', 'cancel', 'balance'].includes(command);
+  return ['menu', 'restart', 'help', 'cancel'].includes(command);
 }
 
 // Handle global commands
@@ -34,7 +34,7 @@ export async function handleGlobalCommand(
   switch (commandLower) {
     case 'help':
       const helpTemplate = await helpMessageTemplate(message.from);
-      await sendButtonMessage(helpTemplate);
+      await sendTextMessage(message.from, helpTemplate.body.text);
       return true;
 
     case 'menu':

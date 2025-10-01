@@ -1,22 +1,4 @@
-//@ts-nocheck
-export async function initialMessageTemplate(name, mobile) {
-  return {
-    body: {
-      text: `Hi ${name}, I'm Mocha Agent — your virtual assistant. You can use me to send money, deposit via mobile money or crypto, withdraw funds, and check your wallet balance easily.`,
-    },
-    action: {
-      buttons: [
-        {
-          type: 'quick_reply',
-          title: 'Get Started',
-          id: 'get_started',
-        },
-      ],
-    },
-    type: 'button',
-    to: mobile,
-  };
-}
+
 
 // export async function otpVerifyMessageTemplate(otp: string) {}
 
@@ -74,10 +56,52 @@ You can now deposit with mobile money or crypto, transfer funds, withdraw to you
   };
 }
 
+function getTimeBasedGreeting(name: string): string {
+  const hour = new Date().getHours();
+  
+  const morningGreetings = [
+    `Good morning, ${name}! Hope your morning is going well.`,
+    `Good morning, ${name}! Hope you're having a bright start to your day.`,
+    `Good morning, ${name}! Trust you're having a wonderful morning.`,
+    `Good morning, ${name}! Hope your day is off to a great start.`,
+    `Good morning, ${name}! Wishing you a productive and blessed morning.`
+  ];
+  
+  const afternoonGreetings = [
+    `Good afternoon, ${name}! Hope you're having a wonderful day.`,
+    `Good afternoon, ${name}! Hope your afternoon is treating you well.`,
+    `Good afternoon, ${name}! Trust your day is going smoothly.`,
+    `Good afternoon, ${name}! Hope you're having a productive afternoon.`,
+    `Good afternoon, ${name}! Wishing you a pleasant rest of your day.`
+  ];
+  
+  const eveningGreetings = [
+    `Good evening, ${name}! Hope your evening is treating you kindly.`,
+    `Good evening, ${name}! Hope you're winding down nicely.`,
+    `Good evening, ${name}! Trust you've had a wonderful day.`,
+    `Good evening, ${name}! Hope you're having a relaxing evening.`,
+    `Good evening, ${name}! Wishing you a peaceful end to your day.`
+  ];
+  
+  const getRandomGreeting = (greetings: string[]) => {
+    return greetings[Math.floor(Math.random() * greetings.length)];
+  };
+  
+  if (hour < 12) {
+    return getRandomGreeting(morningGreetings);
+  } else if (hour < 17) {
+    return getRandomGreeting(afternoonGreetings);
+  } else {
+    return getRandomGreeting(eveningGreetings);
+  }
+}
+
 export async function mainMenuMessageTemplate(name, mobile) {
+  const greeting = getTimeBasedGreeting(name);
+  
   return {
     body: {
-      text: `Good Morning, ${name}! \n It's always great to hear from you. \n\n How can Mocha be of help today?`,
+      text: `${greeting} \n It's always great to hear from you. \n\n How can Mocha be of help today?`,
     },
 
     action: {
@@ -121,6 +145,151 @@ export async function mainMenuMessageTemplate(name, mobile) {
     to: mobile,
   };
 }
+
+// New welcome message for first-time users (before account creation)
+export async function welcomeNewUserMessageTemplate(name: string, mobile: string) {
+  return {
+    header: {
+      text: 'Welcome to Mocha',
+    },
+    body: {
+      text: `Hi ${name}! 👋\n\nWelcome to Mocha — your virtual financial assistant that makes managing money easy and secure.\n\n💰 *What I can help you with:*\n• Send money instantly to any WhatsApp number\n• Deposit funds via mobile money or crypto\n• Withdraw funds to your account\n• Check your balance anytime\n• Secure transactions with blockchain technology\n\nReady to get started with your free digital wallet?`,
+    },
+    footer: {
+      text: `\n\nJoin thousands of users already using Mocha! 🚀`,
+    },
+    action: {
+      buttons: [
+        {
+          type: 'quick_reply',
+          title: 'Get Started',
+          id: 'welcome_get_started',
+        },
+      ],
+    },
+    type: 'button',
+    media:
+      'https://images.unsplash.com/photo-1659018966825-43297e655ccf?q=80&w=1198&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    to: mobile,
+  };
+}
+
+// Congratulations message for new users after account creation
+export async function newUserCongratulationsMessageTemplate(name: string, mobile: string) {
+  return {
+    body: {
+      text: `🎉 Welcome to Mocha, ${name}!\n\nYour digital wallet is now active and ready to use. You can now:\n\n💡 *Quick Commands:*\n• Type "menu" - View all options\n• Type "balance" - Check your balance\n• Type "help" - Get assistance\n• Type "cancel" - Stop any operation\n\nLet's explore what you can do with your new wallet!`,
+    },
+    footer: {
+      text: `\n\nStart with a deposit or receive money from friends! 💜`,
+    },
+    action: {
+      list: {
+        sections: [
+          {
+            title: 'Get Started',
+            rows: [
+              {
+                id: 'd1',
+                title: 'Deposit Funds',
+                description: 'Add money via mobile money or crypto',
+              },
+              {
+                id: 'c1',
+                title: 'Check Balance',
+                description: 'View your current wallet balance',
+              },
+              {
+                id: 't1',
+                title: 'Send Money',
+                description: 'Transfer funds to any WhatsApp number',
+              },
+              {
+                id: 'w1',
+                title: 'Withdraw',
+                description: 'Withdraw funds to your account',
+              },
+            ],
+          },
+        ],
+        label: 'Choose an option',
+      },
+    },
+    type: 'list',
+    to: mobile,
+  };
+}
+
+// Welcome message for money recipients who are not in the database
+export async function recipientWelcomeMessageTemplate(mobile: string, currency: string, amount: number, fromName: string) {
+  return {
+    body: {
+      text: `🎉 Great news! You've received ${amount} ${currency} from ${fromName}!\n\n💰 *Your money is waiting for you*\n\nTo access your funds and start using Mocha's secure digital wallet, you'll need to create a free account. With Mocha you can:\n\n• Receive and send money instantly\n• Deposit via mobile money or crypto\n• Withdraw to your bank account\n• Secure transactions with blockchain\n\nWould you like to get started and claim your money?`,
+    },
+    footer: {
+      text: `\n\nJoin thousands of users already using Mocha! 🚀`,
+    },
+    action: {
+      buttons: [
+        {
+          type: 'quick_reply',
+          title: 'Get Started',
+          id: 'recipient_get_started',
+        },
+      ],
+    },
+    type: 'button',
+    to: mobile,
+  };
+}
+
+// Onboarding completion message for recipients after they create account
+export async function recipientOnboardingCompleteTemplate(name: string, mobile: string, currency: string, amount: number, fromName: string) {
+  return {
+    body: {
+      text: `🎉 Welcome to Mocha, ${name}!\n\nYour account is now active and your ${amount} ${currency} from ${fromName} is in your wallet!\n\n💡 *What's next?*\n• Check your balance to see your funds\n• Withdraw to your bank account\n• Send money to friends and family\n• Deposit more funds anytime\n\n**Quick Commands:**\n• Type "menu" for all options\n• Type "balance" to check funds\n• Type "help" for assistance`,
+    },
+    footer: {
+      text: `\n\nEnjoy using Mocha! 💜`,
+    },
+    action: {
+      list: {
+        sections: [
+          {
+            title: 'Quick Actions',
+            rows: [
+              {
+                id: 'c1',
+                title: 'Check Balance',
+                description: 'View your current balance',
+              },
+              {
+                id: 'w1',
+                title: 'Withdraw Funds',
+                description: 'Withdraw to your bank account',
+              },
+              {
+                id: 't1',
+                title: 'Send Money',
+                description: 'Transfer funds to others',
+              },
+              {
+                id: 'd1',
+                title: 'Deposit More',
+                description: 'Add more funds to your wallet',
+              },
+            ],
+          },
+        ],
+        label: 'Choose an option',
+      },
+    },
+    type: 'list',
+    to: mobile,
+  };
+}
+
+/////#####################################-------------------------------------------------------------------
 
 //deposit
 export async function depositMethodMessageTemplate(mobile) {
@@ -221,10 +390,10 @@ export async function mmDepositMessageTemplateUSSD(mobile, ussd) {
       text: 'Complete Your Deposit',
     },
     body: {
-      text: 'Tap "Copy Code" below, then dial the code on your phone to complete your mobile money deposit.',
+      text: `\n\nTap "Copy Code" below, then dial the code on your phone to complete your mobile money deposit.`,
     },
     footer: {
-      text: "We'll notify you once your deposit is successful! ✅",
+      text: `\n\nWe'll notify you once your deposit is successful! ✅`,
     },
     action: {
       buttons: [
@@ -252,7 +421,7 @@ export async function mmDepositMessageTemplateUSSDDifferentNumber(mobile, ussd) 
       text: 'Copy Payment code',
     },
     footer: {
-      text: 'Copy and send the code to the number funding the transaction to complete me payment',
+      text: `\n\nCopy and send the code to the number funding the transaction to complete me payment`,
     },
     action: {
       buttons: [
@@ -277,10 +446,10 @@ export async function cryptoDepositMessageTemplate(mobile: string, walletAddress
       text: 'Crypto Deposit',
     },
     body: {
-      text: `💰 **Deposit USDC to your wallet**\n\n⚠️ **IMPORTANT WARNING:**\nThis account only receives USDC. Any other token sent here will be lost and won't be replaced.\n\n**Your Wallet Address:**\n${walletAddress}\n\n${qrCodeUrl ? 'Scan the QR code above or tap "Copy Address" below to copy your wallet address for the deposit.' : 'Tap "Copy Address" below to copy your wallet address for the deposit.'}`,
+      text: `💰 *Deposit USDC to your wallet*\n\n⚠️ *IMPORTANT WARNING:*\nThis account only receives USDC. Any other token sent here will be lost and won't be replaced.\n\n*Your Wallet Address:*\n${walletAddress}\n\n${qrCodeUrl ? 'Scan the QR code above or tap "Copy Address" below to copy your wallet address for the deposit.' : 'Tap "Copy Address" below to copy your wallet address for the deposit.'}`,
     },
     footer: {
-      text: 'Only send USDC to this address! 🔒',
+      text: `\n\nOnly send SOLANA USDC to this address! 🔒`,
     },
     action: {
       buttons: [
@@ -531,7 +700,7 @@ export async function checkBalanceMessageTemplate(
   usdc: number,
   fiat: number
 ) {
-  return `Hi ${name}, your current balance is: \n\n USDC: ${usdc} \n\n Fiat: ${fiat}`;
+  return `Hi ${name}, your current balance is: \n\n USDC: \$${usdc} \n\n Fiat: Le${fiat}`;
 }
 
 // Error and global command templates
@@ -548,7 +717,7 @@ export async function invalidSelectionMessageTemplate(mobile: string) {
 export async function helpMessageTemplate(mobile: string) {
   return {
     body: {
-      text: `🆘 **Mocha Bot Help**\n\nAvailable commands (type anytime):\n• **menu** - Return to main menu\n• **restart** - Start conversation over\n• **help** - Show this help message\n• **balance** - Check your balance quickly\n\n📱 **What I can help with:**\n• Deposit funds (mobile money/crypto)\n• Send money to WhatsApp contacts\n• Withdraw to your account\n• Check account balance\n\nNeed more help? Contact our support team.`,
+      text: `🆘 *Mocha Bot Help*\n\nAvailable commands (type anytime):\n• *menu* - Return to main menu\n• *restart* - Start conversation over\n• *help* - Show this help message\n• *cancel* - Cancel current operation\n\n📱 *What I can help with:*\n• Deposit funds (mobile money/crypto)\n• Send money to WhatsApp contacts\n• Withdraw to your account\n• Check account balance\n\nNeed more help? Contact our support team.`,
     },
     type: 'text',
     to: mobile,
@@ -617,10 +786,10 @@ export async function operationCancelledMessageTemplate(mobile: string) {
 export async function comingSoonMessageTemplate(featureName: string, mobile: string) {
   return {
     body: {
-      text: `🚀 **${featureName}** is coming soon!\n\nWe're working hard to bring you this exciting feature. You'll be among the first to know when it's ready! 🎉\n\nIn the meantime, feel free to explore our other services.`,
+      text: `🚀 *${featureName}* is coming soon!\n\nWe're working hard to bring you this exciting feature. You'll be among the first to know when it's ready! 🎉\n\nIn the meantime, feel free to explore our other services.`,
     },
     footer: {
-      text: 'Thank you for your patience! 💜',
+      text: `\n\nThank you for your patience! 💜`,
     },
     action: {
       buttons: [
@@ -636,147 +805,6 @@ export async function comingSoonMessageTemplate(featureName: string, mobile: str
   };
 }
 
-// New welcome message for first-time users (before account creation)
-export async function welcomeNewUserMessageTemplate(name: string, mobile: string) {
-  return {
-    header: {
-      text: 'Welcome to Mocha',
-    },
-    body: {
-      text: `Hi ${name}! 👋\n\nWelcome to Mocha — your virtual financial assistant that makes managing money easy and secure.\n\n💰 **What I can help you with:**\n• Send money instantly to any WhatsApp number\n• Deposit funds via mobile money or crypto\n• Withdraw funds to your account\n• Check your balance anytime\n• Secure transactions with blockchain technology\n\nReady to get started with your free digital wallet?`,
-    },
-    footer: {
-      text: 'Join thousands of users already using Mocha! 🚀',
-    },
-    action: {
-      buttons: [
-        {
-          type: 'quick_reply',
-          title: 'Get Started',
-          id: 'welcome_get_started',
-        },
-      ],
-    },
-    type: 'button',
-    media:
-      'https://images.unsplash.com/photo-1659018966825-43297e655ccf?q=80&w=1198&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    to: mobile,
-  };
-}
 
-// Congratulations message for new users after account creation
-export async function newUserCongratulationsMessageTemplate(name: string, mobile: string) {
-  return {
-    body: {
-      text: `🎉 Welcome to Mocha, ${name}!\n\nYour digital wallet is now active and ready to use. You can now:\n\n💡 **Quick Commands:**\n• Type "menu" - View all options\n• Type "balance" - Check your balance\n• Type "help" - Get assistance\n• Type "cancel" - Stop any operation\n\nLet's explore what you can do with your new wallet!`,
-    },
-    footer: {
-      text: 'Start with a deposit or receive money from friends! 💜',
-    },
-    action: {
-      list: {
-        sections: [
-          {
-            title: 'Get Started',
-            rows: [
-              {
-                id: 'd1',
-                title: 'Deposit Funds',
-                description: 'Add money via mobile money or crypto',
-              },
-              {
-                id: 'c1',
-                title: 'Check Balance',
-                description: 'View your current wallet balance',
-              },
-              {
-                id: 't1',
-                title: 'Send Money',
-                description: 'Transfer funds to any WhatsApp number',
-              },
-              {
-                id: 'w1',
-                title: 'Withdraw',
-                description: 'Withdraw funds to your account',
-              },
-            ],
-          },
-        ],
-        label: 'Choose an option',
-      },
-    },
-    type: 'list',
-    to: mobile,
-  };
-}
-
-// Welcome message for money recipients who are not in the database
-export async function recipientWelcomeMessageTemplate(mobile: string, currency: string, amount: number, fromName: string) {
-  return {
-    body: {
-      text: `🎉 Great news! You've received ${amount} ${currency} from ${fromName}!\n\n💰 **Your money is waiting for you**\n\nTo access your funds and start using Mocha's secure digital wallet, you'll need to create a free account. With Mocha you can:\n\n• Receive and send money instantly\n• Deposit via mobile money or crypto\n• Withdraw to your bank account\n• Secure transactions with blockchain\n\nWould you like to get started and claim your money?`,
-    },
-    footer: {
-      text: 'Join thousands of users already using Mocha! 🚀',
-    },
-    action: {
-      buttons: [
-        {
-          type: 'quick_reply',
-          title: 'Get Started',
-          id: 'recipient_get_started',
-        },
-      ],
-    },
-    type: 'button',
-    to: mobile,
-  };
-}
-
-// Onboarding completion message for recipients after they create account
-export async function recipientOnboardingCompleteTemplate(name: string, mobile: string, currency: string, amount: number, fromName: string) {
-  return {
-    body: {
-      text: `🎉 Welcome to Mocha, ${name}!\n\nYour account is now active and your ${amount} ${currency} from ${fromName} is in your wallet!\n\n💡 **What's next?**\n• Check your balance to see your funds\n• Withdraw to your bank account\n• Send money to friends and family\n• Deposit more funds anytime\n\n**Quick Commands:**\n• Type "menu" for all options\n• Type "balance" to check funds\n• Type "help" for assistance`,
-    },
-    footer: {
-      text: 'Enjoy using Mocha! 💜',
-    },
-    action: {
-      list: {
-        sections: [
-          {
-            title: 'Quick Actions',
-            rows: [
-              {
-                id: 'c1',
-                title: 'Check Balance',
-                description: 'View your current balance',
-              },
-              {
-                id: 'w1',
-                title: 'Withdraw Funds',
-                description: 'Withdraw to your bank account',
-              },
-              {
-                id: 't1',
-                title: 'Send Money',
-                description: 'Transfer funds to others',
-              },
-              {
-                id: 'd1',
-                title: 'Deposit More',
-                description: 'Add more funds to your wallet',
-              },
-            ],
-          },
-        ],
-        label: 'Choose an option',
-      },
-    },
-    type: 'list',
-    to: mobile,
-  };
-}
 
 

@@ -1,10 +1,6 @@
-import { sendTextMessage, sendImageMessage, sendButtonMessage } from '../lib/whapi';
-import {
-  initialMessageTemplate,
-  mainMenuMessageTemplate,
-  recipientOnboardingCompleteTemplate,
-} from '../lib/whapi_message_template';
-import * as userService from './user_service';
+import { sendButtonMessage } from '../lib/whapi';
+import { mainMenuMessageTemplate } from '../lib/whapi_message_template';
+
 import { handleAuth } from './whatsapp_helpers/handle_auth';
 import { handleDeposit } from './whatsapp_helpers/handle_deposit';
 import { handleCheckBalance } from './whatsapp_helpers/handle_check_balance';
@@ -17,7 +13,6 @@ import {
   extractButtonId,
   extractListId,
   handleInvalidInput,
-  isComingSoonFeature,
   handleComingSoonFeature,
 } from '../lib/whatsapp_utils';
 import { startTransaction, commitTransaction } from '../lib/db_transaction';
