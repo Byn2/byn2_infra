@@ -23,6 +23,7 @@ import {
   sendValidationError,
   handleInvalidInput
 } from '@/lib/whatsapp_utils';
+import { QRService } from '@/lib/qr-service';
 
 export async function handleDeposit(message: any, botIntent: any, method?: any, user?: any) {
   const session = await startTransaction();
@@ -220,8 +221,19 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
       // Get user's wallet address
       const walletData = await walletService.getWalletBalance(user);
       
-      // Send crypto deposit template with wallet address
-      const ctx = await cryptoDepositMessageTemplate(message.from, walletData.address);
+      // Generate QR code for wallet address
+      let qrCodeUrl: string | null = null;
+      try {
+        qrCodeUrl = await QRService.generateWalletQRCode({
+          walletAddress: walletData.address
+        });
+      } catch (error) {
+        console.error('Failed to generate QR code:', error);
+        // Continue without QR code - template will use fallback
+      }
+      
+      // Send crypto deposit template with wallet address and QR code
+      const ctx = await cryptoDepositMessageTemplate(message.from, walletData.address, qrCodeUrl);
       await sendButtonMessage(ctx);
 
       // Reset bot intent to start state after showing deposit info
