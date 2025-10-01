@@ -396,6 +396,104 @@ export async function depositSuccessMessageTemplate(name, mobile, amount, curren
 }
 
 //withdraw
+export async function withdrawMethodMessageTemplate(mobile) {
+  return {
+    body: {
+      text: `Please select the method you want to use to withdraw funds.`,
+    },
+    action: {
+      list: {
+        sections: [
+          {
+            title: 'Withdraw options',
+            rows: [
+              {
+                id: 'wo1',
+                title: 'Mobile Money',
+                description: 'Withdraw to mobile money',
+              },
+              {
+                id: 'wo2',
+                title: 'MoneyGram',
+                description: 'Coming soon',
+              },
+            ],
+          },
+        ],
+        label: 'Withdraw Options',
+      },
+    },
+    type: 'list',
+    to: mobile,
+  };
+}
+
+export async function withdrawAmountMessageTemplate() {
+  return 'Please enter the amount you want to withdraw in your local currency e.g 10';
+}
+
+export async function withdrawNumberMessageTemplate(mobile) {
+  return {
+    body: {
+      text: 'Are you withdrawing to',
+    },
+    action: {
+      buttons: [
+        {
+          type: 'quick_reply',
+          title: 'Self',
+          id: 'self',
+        },
+        {
+          type: 'quick_reply',
+          title: 'Different number',
+          id: 'different_number',
+        },
+      ],
+    },
+    type: 'button',
+    to: mobile,
+  };
+}
+
+export async function withdrawDifferentNumberMessageTemplate() {
+  return 'Please enter the number you want to withdraw funds to e.g +232123456';
+}
+
+export async function withdrawConfirmMessageTemplate(name, mobile, withdrawing_number, amount) {
+  return {
+    header: {
+      text: 'Confirm Withdrawal',
+    },
+    body: {
+      text: `Hi ${name}, you're about to make a withdrawal using Mobile Money.\n\nAmount: Le ${amount}\nPhone Number: ${withdrawing_number}\n\nDo you want to continue?`,
+    },
+    action: {
+      buttons: [
+        {
+          type: 'quick_reply',
+          title: 'Yes',
+          id: 'w_confirm',
+        },
+        {
+          type: 'quick_reply',
+          title: 'Cancel',
+          id: 'cancel',
+        },
+      ],
+    },
+    type: 'button',
+    to: mobile,
+  };
+}
+
+export async function withdrawSuccessMessageTemplate(name, mobile, amount, currency) {
+  return `Hi ${name}, you successfully withdrew ${amount} ${currency}. The funds will be sent to your mobile money account shortly.`;
+}
+
+export async function withdrawFailedMessageTemplate(name, mobile, amount, currency) {
+  return `Hi ${name}, your withdrawal of ${amount} ${currency} failed. Please try again later. If the problem persists, please contact support.`;
+}
 
 //check balance
 export async function checkBalanceMessageTemplate(

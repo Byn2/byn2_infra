@@ -1,20 +1,24 @@
 import { sendTextMessage, sendImageMessage, sendButtonMessage } from '../lib/whapi';
-import { initialMessageTemplate, mainMenuMessageTemplate, recipientOnboardingCompleteTemplate } from '../lib/whapi_message_template';
+import {
+  initialMessageTemplate,
+  mainMenuMessageTemplate,
+  recipientOnboardingCompleteTemplate,
+} from '../lib/whapi_message_template';
 import * as userService from './user_service';
 import { handleAuth } from './whatsapp_helpers/handle_auth';
 import { handleDeposit } from './whatsapp_helpers/handle_deposit';
 import { handleCheckBalance } from './whatsapp_helpers/handle_check_balance';
 import { handleSend } from './whatsapp_helpers/handle_send';
 import { handleWithdraw } from './whatsapp_helpers/handle_withdraw';
-import { 
-  isGlobalCommand, 
-  handleGlobalCommand, 
+import {
+  isGlobalCommand,
+  handleGlobalCommand,
   extractTextInput,
   extractButtonId,
   extractListId,
   handleInvalidInput,
   isComingSoonFeature,
-  handleComingSoonFeature
+  handleComingSoonFeature,
 } from '../lib/whatsapp_utils';
 import { startTransaction, commitTransaction } from '../lib/db_transaction';
 
@@ -41,14 +45,13 @@ export async function init(body: any) {
 
     // Handle conversation flow based on current intent and step
     const botIntent = authResult.botIntent;
-    
-    
+
     // If botIntent is null (e.g., during welcome flow), skip conversation handling
     if (!botIntent) {
       await commitTransaction(session);
       return;
     }
-    
+
     if (botIntent.intent === 'start' && botIntent.step === 0) {
       // Check if user selected from main menu first
       const mainMenuBtn = extractListId(message);
@@ -112,7 +115,9 @@ export async function init(body: any) {
     } else if (botIntent.intent === 'transfer') {
       await handleSend(message, botIntent, null, authResult.user);
     } else if (botIntent.intent === 'withdraw') {
-      await handleWithdraw(message, botIntent, '', authResult.user);
+      const withdrawMethod = extractListId(message);
+      console.log('withdrawMethod', withdrawMethod);
+      await handleWithdraw(message, botIntent, withdrawMethod, authResult.user);
     } else if (botIntent.intent === 'check_balance') {
       await handleCheckBalance(message, botIntent);
     } else {

@@ -274,10 +274,10 @@ export async function generateUSSDCode(
 
 export async function withdraw(
   user: any,
-  body: { amount: number; receiving_number?: string },
+  body: { amount: number; receiving_number?: string; platform?: string },
   session: any
 ): Promise<void> {
-  const { amount, receiving_number } = body;
+  const { amount, receiving_number, platform } = body;
 
   const withdraw_number = receiving_number || user.mobile_number;
   const withdraw_type = receiving_number ? 'direct_transfer' : 'withdraw';
@@ -297,6 +297,7 @@ export async function withdraw(
     status: 'pending', // Initially set as pending
     provider: 'monime',
     type: withdraw_type,
+    platform: platform,
     fee: { amount: 0, currency: userCurrency },
     exchange_rate: {
       from: { currency: userCurrency, amount },
@@ -314,6 +315,7 @@ export async function withdraw(
   try {
     // Withdraw USDC from the user's account
     await walletService.withdraw(user, { amount }, session, 'pending');
+    console.log('withdraw_number', withdraw_number);
 
     const options = {
       method: 'POST',
@@ -324,26 +326,27 @@ export async function withdraw(
         Authorization: `Bearer ${monime_api_key}`,
       },
       body: JSON.stringify({
-        amount: { currency: 'SLE', value: body.amount * 100 },
-        destination: { providerCode: 'm17', accountId: withdraw_number },
+        amount: { currency: 'SLE', value: amount * 100 },
+        destination: { type: 'momo', providerId: 'm17', phoneNumber: withdraw_number },
         metadata: { transactionId: transaction_id },
       }),
     };
 
     const response = await fetch('https://api.monime.io/v1/payouts', options);
     const data = await response.json();
+    console.log('data', data);
 
     if (data.success) {
       // Update transaction status to completed
       await transactionService.updateTransaction(transaction_id, { status: 'completed' }, session);
       if (receiving_number === null) {
-        await notifyWithdrawal(user, amount, transaction.currency, session);
+        //await notifyWithdrawal(user, amount, transaction.currency, session);
       }
     } else {
       // Update transaction status to failed
       await transactionService.updateTransaction(transaction_id, { status: 'failed' }, session);
 
-      await notifyFailedWithdrawal(user, amount, transaction.currency, session);
+      //await notifyFailedWithdrawal(user, amount, transaction.currency, session);
     }
   } catch (error) {
     console.error('Withdrawal failed:', error);

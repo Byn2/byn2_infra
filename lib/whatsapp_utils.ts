@@ -190,6 +190,7 @@ export async function handleComingSoonFeature(
 ): Promise<void> {
   const featureMap: Record<string, string> = {
     'csoon': 'Invest in Stocks',
+    'wo2': 'MoneyGram Withdrawal',
     // Add more coming soon features here as needed
   };
 
@@ -200,6 +201,6 @@ export async function handleComingSoonFeature(
 
 // Check if a selection is a coming soon feature
 export function isComingSoonFeature(selectionId: string): boolean {
-  const comingSoonFeatures = ['csoon'];
+  const comingSoonFeatures = ['csoon', 'wo2'];
   return comingSoonFeatures.includes(selectionId);
 }
