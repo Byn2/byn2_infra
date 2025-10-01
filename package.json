@@ -46,7 +46,7 @@
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.503.0",
-    "mobile-operator-lookup": "^1.0.1",
+    "mobile-operator-lookup": "^2.0.0",
     "moment": "^2.30.1",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.3",

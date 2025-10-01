@@ -11,8 +11,10 @@ import {
 } from '../notifications/fcm_notification';
 import { sendTextMessage } from '../lib/whapi';
 import { depositSuccessMessageTemplate } from '../lib/whapi_message_template';
+import { lookupMobileOperator, isLookupSuccess } from 'mobile-operator-lookup';
+import type { MobileOperatorResult } from 'mobile-operator-lookup';
 // import { walletUpdateSocket } from '../lib/websocket_server';
-// import lookupMobileOperator from 'mobile-operator-lookup';
+
 
 // TypeScript interfaces for Monime API
 interface MonimeAmount {
@@ -312,10 +314,17 @@ export async function withdraw(
   const transaction = await transactionService.storeTransations(transactionData, session);
   const transaction_id = transaction._id;
 
+  const result: MobileOperatorResult = lookupMobileOperator(withdraw_number);
+  
+  if (!isLookupSuccess(result)) {
+    throw new Error(`Failed to lookup mobile operator for ${withdraw_number}: ${result.error}`);
+  }
+  
+  const providerCode = result.monime_code;
+
   try {
     // Withdraw USDC from the user's account
     await walletService.withdraw(user, { amount }, session, 'pending');
-    console.log('withdraw_number', withdraw_number);
 
     const options = {
       method: 'POST',
@@ -327,14 +336,13 @@ export async function withdraw(
       },
       body: JSON.stringify({
         amount: { currency: 'SLE', value: amount * 100 },
-        destination: { type: 'momo', providerId: 'm17', phoneNumber: withdraw_number },
+        destination: { type: 'momo', providerId: providerCode, phoneNumber: withdraw_number },
         metadata: { transactionId: transaction_id },
       }),
     };
 
     const response = await fetch('https://api.monime.io/v1/payouts', options);
     const data = await response.json();
-    console.log('data', data);
 
     if (data.success) {
       // Update transaction status to completed
