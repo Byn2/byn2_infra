@@ -101,7 +101,7 @@ export async function mainMenuMessageTemplate(name, mobile) {
   
   return {
     body: {
-      text: `${greeting} \n It's always great to hear from you. \n\n How can Mocha be of help today?`,
+      text: `${greeting} \n It's always great to hear from you. \n\n How can I help you today?`,
     },
 
     action: {
@@ -295,7 +295,7 @@ export async function recipientOnboardingCompleteTemplate(name: string, mobile: 
 export async function depositMethodMessageTemplate(mobile) {
   return {
     body: {
-      text: `Please select the method you want to use to deposit funds.`,
+      text: `Choose how you'd like to add funds to your wallet:`,
     },
     action: {
       list: {
@@ -306,12 +306,12 @@ export async function depositMethodMessageTemplate(mobile) {
               {
                 id: 'do1',
                 title: 'Mobile Money',
-                description: 'Deposit with mobile money',
+                description: 'Add funds using mobile money',
               },
               {
                 id: 'do2',
                 title: 'Crypto',
-                description: 'Deposit with crypto',
+                description: 'Add funds using cryptocurrency',
               },
               {
                 id: 'do3',
@@ -332,7 +332,7 @@ export async function depositMethodMessageTemplate(mobile) {
 export async function mmDepositMessageTemplate1(mobile) {
   return {
     body: {
-      text: 'Are depositing from',
+      text: 'Are you depositing from your own number or a different number?',
     },
     action: {
       buttons: [
@@ -354,7 +354,7 @@ export async function mmDepositMessageTemplate1(mobile) {
 }
 
 export async function mmDepositMessageTemplateAmount() {
-  return 'Please enter the amount you want to desposit in your local currency e.g 10';
+  return 'Please enter the amount you want to deposit in your local currency (e.g., 10):';
 }
 
 export async function mmDepositMessageTemplateConfirm(name, mobile, depositing_number, amount) {
@@ -390,7 +390,7 @@ export async function mmDepositMessageTemplateUSSD(mobile, ussd) {
       text: 'Complete Your Deposit',
     },
     body: {
-      text: `\n\nTap "Copy Code" below, then dial the code on your phone to complete your mobile money deposit.`,
+      text: `\n\nTap "Copy Code" below, then dial the code on your phone to complete your deposit.`,
     },
     footer: {
       text: `\n\nWe'll notify you once your deposit is successful! ✅`,
@@ -412,16 +412,16 @@ export async function mmDepositMessageTemplateUSSD(mobile, ussd) {
 
 //different number
 export async function mmDepositMessageTemplateDifferentNumber() {
-  return 'Please enter the number you want to use to deposit funds with e.g +232123456';
+  return 'Please enter the phone number you want to use for this deposit (e.g., +232123456789):';
 }
 
 export async function mmDepositMessageTemplateUSSDDifferentNumber(mobile, ussd) {
   return {
     body: {
-      text: 'Copy Payment code',
+      text: 'Payment Code',
     },
     footer: {
-      text: `\n\nCopy and send the code to the number funding the transaction to complete me payment`,
+      text: `\n\nCopy and send this code to the phone number funding the transaction to complete the payment.`,
     },
     action: {
       buttons: [
@@ -474,7 +474,7 @@ export async function transferMessageTemplateCurrency(mobile) {
       text: 'Select Currency',
     },
     body: {
-      text: 'Select the currency you want to transfer',
+      text: 'Which currency would you like to send?',
     },
     action: {
       buttons: [
@@ -485,7 +485,7 @@ export async function transferMessageTemplateCurrency(mobile) {
         },
         {
           type: 'quick_reply',
-          title: 'Local Fiat (Le currently Support)',
+          title: 'Local Currency (Le - Sierra Leone)',
           id: 'tt_local',
         },
       ],
@@ -496,15 +496,15 @@ export async function transferMessageTemplateCurrency(mobile) {
 }
 
 export async function transfertMessageTemplateAmountLocal() {
-  return 'Please enter the amount you want to send in your local currency (Le) e.g 10';
+  return 'Enter the amount you want to send in Leones (Le). For example: 10';
 }
 
 export async function transfertMessageTemplateAmountUSD() {
-  return 'Please enter the amount you want to send in USD ($) e.g 1';
+  return 'Enter the amount you want to send in USD ($). For example: 1';
 }
 
 export async function transferMessageTemplateNumber() {
-  return 'Please enter the Whatsapp number you want to send funds to e.g +232123456';
+  return 'Enter the WhatsApp number you want to send money to (e.g., +232123456789):';
 }
 
 export async function transferMessageTemplateConfirmLocal(name, mobile, toNumber, amount) {
@@ -513,7 +513,7 @@ export async function transferMessageTemplateConfirmLocal(name, mobile, toNumber
       text: 'Confirm Transaction',
     },
     body: {
-      text: `Hi ${name}, you're about to make a send.\n\nAmount: Le ${amount}\nPhone Number: ${toNumber}\n\nDo you want to continue?`,
+      text: `Hi ${name}, you're about to send money.\n\nAmount: Le ${amount}\nRecipient: ${toNumber}\n\nDo you want to continue?`,
     },
     action: {
       buttons: [
@@ -540,7 +540,7 @@ export async function transferMessageTemplateConfirmUSD(name, mobile, toNumber, 
       text: 'Confirm Transaction',
     },
     body: {
-      text: `Hi ${name}, you're about to make a send.\n\nAmount: \$ ${amount}\nPhone Number: ${toNumber}\n\nDo you want to continue?`,
+      text: `Hi ${name}, you're about to send money.\n\nAmount: $${amount}\nRecipient: ${toNumber}\n\nDo you want to continue?`,
     },
     action: {
       buttons: [
@@ -569,9 +569,9 @@ export async function transfertMessageTemplateStatusSender(
   toNumber
 ) {
   if (status === 'true') {
-    return `Hi ${name}, you successfully sent ${amount} ${currency} to ${toNumber}`;
+    return `✅ Hi ${name}, you successfully sent ${amount} ${currency} to ${toNumber}.`;
   } else {
-    return `Hi ${name}, you failed to send ${amount} ${currency} to ${toNumber}. Please try again later. If the problem persists, please contact support. Thank you for using Mocha.`;
+    return `❌ Hi ${name}, your transfer of ${amount} ${currency} to ${toNumber} failed. Please try again later. If the problem continues, contact our support team.`;
   }
 }
 
@@ -583,21 +583,21 @@ export async function transfertMessageTemplateAmountStatusReceiver(
   from
 ) {
   if (name) {
-    return `Hi ${name}, you received ${amount} ${currency} from ${from}`;
+    return `🎉 Hi ${name}, you received ${amount} ${currency} from ${from}!`;
   } else {
-    return `Hi ${mobile}, you received ${amount} ${currency} from ${from}`;
+    return `🎉 You received ${amount} ${currency} from ${from}! Create an account to access your funds.`;
   }
 }
 
 export async function depositSuccessMessageTemplate(name, mobile, amount, currency) {
-  return `Hi ${name}, you successfully deposited ${amount} ${currency}`;
+  return `✅ Hi ${name}, you successfully deposited ${amount} ${currency}. Your wallet has been updated!`;
 }
 
 //withdraw
 export async function withdrawMethodMessageTemplate(mobile) {
   return {
     body: {
-      text: `Please select the method you want to use to withdraw funds.`,
+      text: `Choose how you'd like to withdraw your funds:`,
     },
     action: {
       list: {
@@ -608,7 +608,7 @@ export async function withdrawMethodMessageTemplate(mobile) {
               {
                 id: 'wo1',
                 title: 'Mobile Money',
-                description: 'Withdraw to mobile money',
+                description: 'Receive funds via mobile money',
               },
               {
                 id: 'wo2',
@@ -627,13 +627,13 @@ export async function withdrawMethodMessageTemplate(mobile) {
 }
 
 export async function withdrawAmountMessageTemplate() {
-  return 'Please enter the amount you want to withdraw in your local currency e.g 10';
+  return 'Enter the amount you want to withdraw in Leones (Le). For example: 10';
 }
 
 export async function withdrawNumberMessageTemplate(mobile) {
   return {
     body: {
-      text: 'Are you withdrawing to',
+      text: 'Are you withdrawing to your own number or a different number?',
     },
     action: {
       buttons: [
@@ -655,7 +655,7 @@ export async function withdrawNumberMessageTemplate(mobile) {
 }
 
 export async function withdrawDifferentNumberMessageTemplate() {
-  return 'Please enter the number you want to withdraw funds to e.g +232123456';
+  return 'Enter the phone number you want to withdraw funds to (e.g., +232123456789):';
 }
 
 export async function withdrawConfirmMessageTemplate(name, mobile, withdrawing_number, amount) {
@@ -664,7 +664,7 @@ export async function withdrawConfirmMessageTemplate(name, mobile, withdrawing_n
       text: 'Confirm Withdrawal',
     },
     body: {
-      text: `Hi ${name}, you're about to make a withdrawal using Mobile Money.\n\nAmount: Le ${amount}\nPhone Number: ${withdrawing_number}\n\nDo you want to continue?`,
+      text: `Hi ${name}, you're about to withdraw funds via Mobile Money.\n\nAmount: Le ${amount}\nRecipient: ${withdrawing_number}\n\nDo you want to continue?`,
     },
     action: {
       buttons: [
@@ -686,11 +686,11 @@ export async function withdrawConfirmMessageTemplate(name, mobile, withdrawing_n
 }
 
 export async function withdrawSuccessMessageTemplate(name, mobile, amount, currency) {
-  return `Hi ${name}, you successfully withdrew ${amount} ${currency}. The funds will be sent to your mobile money account shortly.`;
+  return `✅ Hi ${name}, you successfully withdrew ${amount} ${currency}. The funds will be sent to your mobile money account within a few minutes.`;
 }
 
 export async function withdrawFailedMessageTemplate(name, mobile, amount, currency) {
-  return `Hi ${name}, your withdrawal of ${amount} ${currency} failed. Please try again later. If the problem persists, please contact support.`;
+  return `❌ Hi ${name}, your withdrawal of ${amount} ${currency} failed. Please try again later. If the problem continues, contact our support team.`;
 }
 
 //check balance
@@ -700,14 +700,14 @@ export async function checkBalanceMessageTemplate(
   usdc: number,
   fiat: number
 ) {
-  return `Hi ${name}, your current balance is: \n\n USDC: \$${usdc} \n\n Fiat: Le${fiat}`;
+  return `💰 Hi ${name}, here's your current wallet balance:\n\n💵 USDC: $${usdc}\n💴 Fiat: Le ${fiat}`;
 }
 
 // Error and global command templates
 export async function invalidSelectionMessageTemplate(mobile: string) {
   return {
     body: {
-      text: `❌ I didn't understand that selection. Please choose from the available options.\n\n💡 You can also type:\n• "menu" - Return to main menu\n• "restart" - Start over\n• "help" - Get assistance`,
+      text: `❌ I didn't understand that selection. Please choose from the available options.\n\n💡 Quick commands:\n• Type "menu" - Return to main menu\n• Type "restart" - Start over\n• Type "help" - Get assistance`,
     },
     type: 'text',
     to: mobile,
@@ -717,7 +717,7 @@ export async function invalidSelectionMessageTemplate(mobile: string) {
 export async function helpMessageTemplate(mobile: string) {
   return {
     body: {
-      text: `🆘 *Mocha Bot Help*\n\nAvailable commands (type anytime):\n• *menu* - Return to main menu\n• *restart* - Start conversation over\n• *help* - Show this help message\n• *cancel* - Cancel current operation\n\n📱 *What I can help with:*\n• Deposit funds (mobile money/crypto)\n• Send money to WhatsApp contacts\n• Withdraw to your account\n• Check account balance\n\nNeed more help? Contact our support team.`,
+      text: `🆘 *Mocha Help Center*\n\n💬 *Quick Commands (type anytime):*\n• *menu* - Return to main menu\n• *restart* - Start fresh conversation\n• *help* - Show this help message\n• *cancel* - Cancel current operation\n\n💰 *What I can help you with:*\n• Deposit funds via mobile money or crypto\n• Send money instantly to WhatsApp contacts\n• Withdraw funds to your mobile money account\n• Check your wallet balance anytime\n\nNeed more assistance? Contact our support team!`,
     },
     type: 'text',
     to: mobile,
@@ -727,7 +727,7 @@ export async function helpMessageTemplate(mobile: string) {
 export async function sessionResetMessageTemplate(name: string, mobile: string) {
   return {
     body: {
-      text: `🔄 Session reset successfully, ${name}! Let's start fresh.\n\nHow can Mocha help you today?`,
+      text: `🔄 Session reset successfully, ${name}! Let's start fresh.\n\nHow can I help you today?`,
     },
     action: {
       list: {
@@ -772,15 +772,15 @@ export async function sessionResetMessageTemplate(name: string, mobile: string) 
 }
 
 export async function invalidAmountMessageTemplate(mobile: string) {
-  return `❌ Please enter a valid amount (numbers only). For example: 10 or 25.50\n\n💡 Type "cancel" to return to main menu.`;
+  return `❌ Please enter a valid amount using numbers only.\n\nExamples: 10 or 25.50\n\n💡 Type "cancel" to return to main menu.`;
 }
 
 export async function invalidPhoneNumberMessageTemplate(mobile: string) {
-  return `❌ Please enter a valid phone number with country code. For example: +232123456789\n\n💡 Type "cancel" to return to main menu.`;
+  return `❌ Please enter a valid phone number with country code.\n\nExample: +232123456789\n\n💡 Type "cancel" to return to main menu.`;
 }
 
 export async function operationCancelledMessageTemplate(mobile: string) {
-  return `✅ Operation cancelled. Returning to main menu...`;
+  return `✅ Operation cancelled successfully. Returning to main menu...`;
 }
 
 export async function comingSoonMessageTemplate(featureName: string, mobile: string) {
