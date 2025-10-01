@@ -5,7 +5,6 @@ import * as walletService from '@/services/wallet_service';
 import {
   transferMessageTemplateConfirmLocal,
   transferMessageTemplateConfirmUSD,
-  transferMessageTemplateCurrency,
   transferMessageTemplateNumber,
   transfertMessageTemplateAmountLocal,
   transfertMessageTemplateAmountUSD,
@@ -25,49 +24,20 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
   const mobile = `+${message.from}`;
 
   if (botIntent.intent === 'start') {
-    const ctx = await transferMessageTemplateCurrency(message.from);
-    await sendButtonMessage(ctx);
+    const ctx = await transfertMessageTemplateAmountLocal();
+    await sendTextMessage(message.from, ctx);
     await updateBotIntent(
       botIntent._id,
       {
         intent: 'transfer',
+        currency: 'local',
         step: 1,
       },
       session
     );
   } else if (botIntent.intent === 'transfer') {
-    // Step 1: Currency selection
+    // Step 1: Amount input
     if (botIntent.step === 1) {
-      const currencyBtn = extractButtonId(message);
-
-      if (currencyBtn === 'ButtonsV3:tt_local') {
-        const ctx = await transfertMessageTemplateAmountLocal();
-        await sendTextMessage(message.from, ctx);
-        await updateBotIntent(
-          botIntent._id,
-          {
-            currency: 'local',
-            step: 2,
-          },
-          session
-        );
-      } else if (currencyBtn === 'ButtonsV3:tt_usd') {
-        const ctx = await transfertMessageTemplateAmountUSD();
-        await sendTextMessage(message.from, ctx);
-        await updateBotIntent(
-          botIntent._id,
-          {
-            currency: 'usd',
-            step: 2,
-          },
-          session
-        );
-      } else {
-        await handleInvalidInput(message, 'button');
-      }
-
-      // Step 2: Amount input
-    } else if (botIntent.step === 2) {
       const amount = extractTextInput(message);
 
       if (!amount || !isValidAmount(amount)) {
@@ -81,13 +51,13 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
         botIntent._id,
         {
           amount: parseFloat(amount),
-          step: 3,
+          step: 2,
         },
         session
       );
 
-      // Step 3: Phone number input
-    } else if (botIntent.step === 3) {
+      // Step 2: Phone number input
+    } else if (botIntent.step === 2) {
       const number = extractTextInput(message);
 
       if (!number || !isValidPhoneNumber(number)) {
@@ -118,13 +88,13 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
         botIntent._id,
         {
           number: number,
-          step: 4,
+          step: 3,
         },
         session
       );
 
-      // Step 4: Confirmation
-    } else if (botIntent.step === 4) {
+      // Step 3: Confirmation
+    } else if (botIntent.step === 3) {
       const confirmBtn = extractButtonId(message);
 
       if (confirmBtn === 'ButtonsV3:tt_confirm') {

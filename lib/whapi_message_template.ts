@@ -654,6 +654,25 @@ export async function withdrawNumberMessageTemplate(mobile) {
   };
 }
 
+export async function withdrawUnsupportedNumberMessageTemplate(mobile) {
+  return {
+    body: {
+      text: 'Sorry, your number is not supported for mobile money withdrawal. Please use a different number that supports mobile money transactions.',
+    },
+    action: {
+      buttons: [
+        {
+          type: 'quick_reply',
+          title: 'Different number',
+          id: 'different_number',
+        },
+      ],
+    },
+    type: 'button',
+    to: mobile,
+  };
+}
+
 export async function withdrawDifferentNumberMessageTemplate() {
   return 'Enter the phone number you want to withdraw funds to (e.g., +232123456789):';
 }

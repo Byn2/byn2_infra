@@ -2,6 +2,7 @@ import {
   withdrawMethodMessageTemplate,
   withdrawAmountMessageTemplate,
   withdrawNumberMessageTemplate,
+  withdrawUnsupportedNumberMessageTemplate,
   withdrawDifferentNumberMessageTemplate,
   withdrawConfirmMessageTemplate,
   withdrawSuccessMessageTemplate,
@@ -22,6 +23,8 @@ import {
   handleComingSoonFeature,
   isComingSoonFeature,
 } from '@/lib/whatsapp_utils';
+import { lookupMobileOperator, isLookupSuccess } from 'mobile-operator-lookup';
+import type { MobileOperatorResult } from 'mobile-operator-lookup';
 
 export async function handleWithdraw(message: any, botIntent: any, method?: any, user?: any) {
   const session = await startTransaction();
@@ -86,10 +89,26 @@ export async function handleWithdraw(message: any, botIntent: any, method?: any,
             },
             session
           );
+          //lookup the user's number 
+          const result: MobileOperatorResult = lookupMobileOperator(`+${message.from}`);
+          if (!isLookupSuccess(result)) {
+            await sendValidationError('phone', message.from);
+            await commitTransaction(session);
+            return;
+          }
+          const providerCode = result.monime_code;
 
-          // Ask if withdrawing to self or different number
-          const ctx = await withdrawNumberMessageTemplate(message.from);
-          await sendButtonMessage(ctx);
+          // Check if the provider code is supported for mobile money withdrawal
+          if (providerCode === 'm13' || !providerCode) {
+            // Send unsupported number message with only "Different number" option
+            const ctx = await withdrawUnsupportedNumberMessageTemplate(message.from);
+            await sendButtonMessage(ctx);
+          } else {
+            // Ask if withdrawing to self or different number (normal flow)
+            const ctx = await withdrawNumberMessageTemplate(message.from);
+            await sendButtonMessage(ctx);
+          }
+
         } else if (botIntent.step === 3) {
           // Handle recipient selection
           const fundingAcct = extractButtonId(message);
@@ -131,6 +150,23 @@ export async function handleWithdraw(message: any, botIntent: any, method?: any,
               
               if (!number || !isValidPhoneNumber(number)) {
                 await sendValidationError('phone', message.from);
+                await commitTransaction(session);
+                return;
+              }
+
+              // Validate the different number for mobile money support
+              const differentNumberResult: MobileOperatorResult = lookupMobileOperator(number);
+              if (!isLookupSuccess(differentNumberResult)) {
+                await sendValidationError('phone', message.from);
+                await commitTransaction(session);
+                return;
+              }
+              
+              const differentProviderCode = differentNumberResult.monime_code;
+              if (differentProviderCode === 'm13' || !differentProviderCode) {
+                // The different number is also unsupported, show error and ask for another number
+                const ctx = await withdrawUnsupportedNumberMessageTemplate(message.from);
+                await sendButtonMessage(ctx);
                 await commitTransaction(session);
                 return;
               }
