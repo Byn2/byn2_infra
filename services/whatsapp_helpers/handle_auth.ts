@@ -1,7 +1,6 @@
 import * as userService from '@/services/user_service';
 import * as authService from '@/services/auth_service';
 import {
-  initialMessageTemplate,
   congratulationsMessageTemplate,
   mainMenuMessageTemplate,
   welcomeNewUserMessageTemplate,
