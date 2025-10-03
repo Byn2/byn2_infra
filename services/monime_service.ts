@@ -1,20 +1,19 @@
-import * as transactionService from '../services/transaction_service';
-import * as userService from '../services/user_service';
-import * as walletService from '../services/wallet_service';
-import { convertToUSD, currencyConverter } from '../lib/helpers';
-import * as currencyService from '../services/currency_service';
+import * as transactionService from "../services/transaction_service";
+import * as userService from "../services/user_service";
+import * as walletService from "../services/wallet_service";
+import { convertToUSD, currencyConverter } from "../lib/helpers";
+import * as currencyService from "../services/currency_service";
 import {
   notifyTopUp,
   notifyTopUpFailure,
   notifyWithdrawal,
   notifyFailedWithdrawal,
-} from '../notifications/fcm_notification';
-import { sendTextMessage } from '../lib/whapi';
-import { depositSuccessMessageTemplate } from '../lib/whapi_message_template';
-import { lookupMobileOperator, isLookupSuccess } from 'mobile-operator-lookup';
-import type { MobileOperatorResult } from 'mobile-operator-lookup';
+} from "../notifications/fcm_notification";
+import { sendTextMessage } from "../lib/whapi";
+import { depositSuccessMessageTemplate } from "../lib/whapi_message_template";
+import { lookupMobileOperator, isLookupSuccess } from "mobile-operator-lookup";
+import type { MobileOperatorResult } from "mobile-operator-lookup";
 // import { walletUpdateSocket } from '../lib/websocket_server';
-
 
 // TypeScript interfaces for Monime API
 interface MonimeAmount {
@@ -65,7 +64,7 @@ export async function deposit(
   const { amount, depositing_number, platform } = body;
 
   const deposit_number = depositing_number || user.mobile_number;
-  const deposit_type = depositing_number ? 'direct_deposit' : 'deposit';
+  const deposit_type = depositing_number ? "direct_deposit" : "deposit";
 
   const Idkey = deposit_number + Date.now().toString();
 
@@ -80,13 +79,13 @@ export async function deposit(
     to_id: null,
     amount: amount,
     currency: userCurrency,
-    reason: 'deposit',
-    status: 'pending',
-    provider: 'monime',
+    reason: "deposit",
+    status: "pending",
+    provider: "monime",
     type: deposit_type,
     platform: platform,
     fee: {
-      amount: '0',
+      amount: "0",
       currency: userCurrency,
     },
     exchange_rate: {
@@ -95,50 +94,60 @@ export async function deposit(
         amount: amount,
       },
       to: {
-        currency: 'USD',
+        currency: "USD",
         amount: convertedAmount,
       },
     },
     amount_received: convertedAmount,
     received_currency: userCurrency,
-    receiving_number: depositing_number || '',
+    receiving_number: depositing_number || "",
   };
   // Store the transaction
-  const transaction = await transactionService.storeTransations(transactionData, session);
+  const transaction = await transactionService.storeTransations(
+    transactionData,
+    session
+  );
 
   const transaction_id = transaction._id;
 
   const options = {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Monime-Space-Id': monime_space_id,
-      'Idempotency-Key': Idkey,
-      'Content-Type': 'application/json',
+      "Monime-Space-Id": monime_space_id,
+      "Idempotency-Key": Idkey,
+      "Content-Type": "application/json",
       Authorization: `Bearer ${monime_api_key}`,
     },
     body: JSON.stringify({
-      name: 'Deposit - Byn2',
-      mode: 'one_time',
+      name: "Deposit - Byn2",
+      mode: "one_time",
       enable: true,
-      amount: { currency: 'SLE', value: amount * 100 },
-      duration: '1h30m',
+      amount: { currency: "SLE", value: amount * 100 },
+      duration: "1h30m",
       customer: {
         name: user.name,
       },
       reference: transaction_id,
-      authorizedProviders: ['m17', 'm18'],
+      authorizedProviders: ["m17", "m18"],
       //authorizedPhoneNumber: deposit_number,
       metadata: {},
     }),
   };
 
-  const response = await fetch('https://api.monime.io/v1/payment-codes', options);
+  const response = await fetch(
+    "https://api.monime.io/v1/payment-codes",
+    options
+  );
 
   const data = await response.json();
 
   const ussdCode = data.result.ussdCode;
 
-  await transactionService.updateTransaction(transaction_id, { ussd: ussdCode }, session);
+  await transactionService.updateTransaction(
+    transaction_id,
+    { ussd: ussdCode },
+    session
+  );
 
   return ussdCode;
 }
@@ -162,36 +171,43 @@ export async function generateUSSDCode(
   const transaction = await transactionService.fetchByID(transaction_id);
 
   const options = {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Monime-Space-Id': monime_space_id,
-      'Idempotency-Key': Idkey,
-      'Content-Type': 'application/json',
+      "Monime-Space-Id": monime_space_id,
+      "Idempotency-Key": Idkey,
+      "Content-Type": "application/json",
       Authorization: `Bearer ${monime_api_key}`,
     },
     body: JSON.stringify({
-      name: 'Deposit - Byn2',
-      mode: 'one_time',
+      name: "Deposit - Byn2",
+      mode: "one_time",
       enable: true,
-      amount: { currency: 'SLE', value: transaction.amount * 100 },
-      duration: '1h30m',
+      amount: { currency: "SLE", value: transaction.amount * 100 },
+      duration: "1h30m",
       customer: {
         name: user.name,
       },
       reference: transaction._id,
-      authorizedProviders: ['m17', 'm18'],
+      authorizedProviders: ["m17", "m18"],
       authorizedPhoneNumber: deposit_number,
       metadata: {},
     }),
   };
 
-  const response = await fetch('https://api.monime.io/v1/payment-codes', options);
+  const response = await fetch(
+    "https://api.monime.io/v1/payment-codes",
+    options
+  );
 
   const data = await response.json();
 
   const ussdCode = data.result.ussdCode;
 
-  await transactionService.updateTransaction(transaction_id, { ussd: ussdCode }, session);
+  await transactionService.updateTransaction(
+    transaction_id,
+    { ussd: ussdCode },
+    session
+  );
 
   return ussdCode;
 }
@@ -282,12 +298,28 @@ export async function withdraw(
   const { amount, receiving_number, platform } = body;
 
   const withdraw_number = receiving_number || user.mobile_number;
-  const withdraw_type = receiving_number ? 'direct_transfer' : 'withdraw';
+  const withdraw_type = receiving_number ? "direct_transfer" : "withdraw";
   const Idkey = withdraw_number + Date.now().toString();
 
   // Get user's currency
   const userCurrency = await currencyService.getCurrency(user);
-  const convertedAmount = await currencyConverter(amount, userCurrency, userCurrency);
+  const convertedAmount = await currencyConverter(
+    amount,
+    userCurrency,
+    userCurrency
+  );
+
+  // check if user has sufficient balance
+  const walletBalance = await walletService.getWalletBalance(user);
+  const userBalance = walletBalance.balance || 0;
+  
+  if (userBalance < amount) {
+    // send whatsapp message about insufficient balance only if platform is whatsapp
+    if (platform === "whatsapp") {
+      await sendTextMessage(user.mobile_number.replace('+', ''), `Dear ${user.name}, your withdrawal of ${amount} ${userCurrency} cannot be processed due to insufficient balance. Please top up your account and try again. Thank you.`);
+    }
+    throw new Error('Insufficient balance for withdrawal');
+  }
 
   // Prepare transaction data
   const transactionData = {
@@ -295,75 +327,99 @@ export async function withdraw(
     to_id: null,
     amount,
     currency: userCurrency,
-    reason: 'withdraw',
-    status: 'pending', // Initially set as pending
-    provider: 'monime',
+    reason: "withdraw",
+    status: "pending", // Initially set as pending
+    provider: "monime",
     type: withdraw_type,
     platform: platform,
     fee: { amount: 0, currency: userCurrency },
     exchange_rate: {
       from: { currency: userCurrency, amount },
-      to: { currency: 'USD', amount: convertedAmount },
+      to: { currency: "USD", amount: convertedAmount },
     },
     amount_received: convertedAmount,
     received_currency: userCurrency,
-    receiving_number: receiving_number || '',
+    receiving_number: receiving_number || "",
   };
 
   // Store the transaction
-  const transaction = await transactionService.storeTransations(transactionData, session);
+  const transaction = await transactionService.storeTransations(
+    transactionData,
+    session
+  );
   const transaction_id = transaction._id;
 
   const result: MobileOperatorResult = lookupMobileOperator(withdraw_number);
-  
+
   if (!isLookupSuccess(result)) {
-    throw new Error(`Failed to lookup mobile operator for ${withdraw_number}: ${result.error}`);
+    throw new Error(
+      `Failed to lookup mobile operator for ${withdraw_number}: ${result.error}`
+    );
   }
-  
+
   const providerCode = result.monime_code;
 
   try {
-    // Withdraw USDC from the user's account
-    await walletService.withdraw(user, { amount }, session, 'pending');
-
     const options = {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Monime-Space-Id': monime_space_id,
-        'Idempotency-Key': Idkey,
-        'Content-Type': 'application/json',
+        "Monime-Space-Id": monime_space_id,
+        "Idempotency-Key": Idkey,
+        "Content-Type": "application/json",
         Authorization: `Bearer ${monime_api_key}`,
       },
       body: JSON.stringify({
-        amount: { currency: 'SLE', value: amount * 100 },
-        destination: { type: 'momo', providerId: providerCode, phoneNumber: withdraw_number },
+        amount: { currency: "SLE", value: amount * 100 },
+        destination: {
+          type: "momo",
+          providerId: providerCode,
+          phoneNumber: withdraw_number,
+        },
         metadata: { transactionId: transaction_id },
       }),
     };
 
-    const response = await fetch('https://api.monime.io/v1/payouts', options);
+    const response = await fetch("https://api.monime.io/v1/payouts", options);
     const data = await response.json();
 
     if (data.success) {
+      // Withdraw USDC from the user's account only after Monime confirms success
+      await walletService.withdraw(user, { amount }, session, "completed");
+      
       // Update transaction status to completed
-      await transactionService.updateTransaction(transaction_id, { status: 'completed' }, session);
+      await transactionService.updateTransaction(
+        transaction_id,
+        { status: "completed" },
+        session
+      );
       if (receiving_number === null) {
         //await notifyWithdrawal(user, amount, transaction.currency, session);
       }
     } else {
       // Update transaction status to failed
-      await transactionService.updateTransaction(transaction_id, { status: 'failed' }, session);
+      await transactionService.updateTransaction(
+        transaction_id,
+        { status: "failed" },
+        session
+      );
 
       //await notifyFailedWithdrawal(user, amount, transaction.currency, session);
     }
   } catch (error) {
-    console.error('Withdrawal failed:', error);
+    console.error("Withdrawal failed:", error);
     // Update transaction status to failed in case of an error
-    await transactionService.updateTransaction(transaction_id, { status: 'failed' }, session);
+    await transactionService.updateTransaction(
+      transaction_id,
+      { status: "failed" },
+      session
+    );
   }
 }
 
-export async function webhook(body: MonimeWebhookPayload, session: any): Promise<void> {
+export async function webhook(
+  body: MonimeWebhookPayload,
+  session: any
+): Promise<void> {
   const { status, reference } = body;
 
   // find the transaction
@@ -375,54 +431,90 @@ export async function webhook(body: MonimeWebhookPayload, session: any): Promise
   const user = await userService.fetchUserById(txt.from_id);
 
   // Check if user fetch was successful
-  if (!user || ('success' in user && !user.success)) {
+  if (!user || ("success" in user && !user.success)) {
     return;
   }
 
-  if (txt.platform === 'whatsapp' && txt.status !== 'completed') {
-    if (status === 'completed') {
+  if (txt.platform === "whatsapp" && txt.status !== "completed") {
+    if (status === "completed") {
       await walletService.deposit(user, { amount }, session, status);
       //update the transaction
-      await transactionService.updateTransaction(txt._id, { status: status }, session);
-      const phoneNumber = (user as any).mobile_number.replace('+', '');
+      await transactionService.updateTransaction(
+        txt._id,
+        { status: status },
+        session
+      );
+      const phoneNumber = (user as any).mobile_number.replace("+", "");
       const ctx = await depositSuccessMessageTemplate(
         (user as any).name,
         (user as any).mobile_number,
         amount,
-        'Le'
+        "Le"
       );
       await sendTextMessage(phoneNumber, ctx);
-    } else if (status === 'processing' && txt.status == 'pending') {
-      await transactionService.updateTransaction(txt._id, { status: status }, session);
-    } else if (status === 'failed' || status === 'expired') {
-      await transactionService.updateTransaction(txt._id, { status: status }, session);
+    } else if (status === "processing" && txt.status == "pending") {
+      await transactionService.updateTransaction(
+        txt._id,
+        { status: status },
+        session
+      );
+    } else if (status === "failed" || status === "expired") {
+      await transactionService.updateTransaction(
+        txt._id,
+        { status: status },
+        session
+      );
       //send message to the user that the deposit is failed
     } else {
-      await transactionService.updateTransaction(txt._id, { status: status }, session);
+      await transactionService.updateTransaction(
+        txt._id,
+        { status: status },
+        session
+      );
     }
   } else {
-    if (status === 'completed' && txt.status !== 'completed' && txt.platform !== 'whatsapp') {
+    if (
+      status === "completed" &&
+      txt.status !== "completed" &&
+      txt.platform !== "whatsapp"
+    ) {
       await walletService.deposit(user, { amount }, session, status);
 
       //update the transaction
-      await transactionService.updateTransaction(txt._id, { status: status }, session);
+      await transactionService.updateTransaction(
+        txt._id,
+        { status: status },
+        session
+      );
       //send push notification
 
-      console.log('Make teh websocket:', (user as any)._id);
+      console.log("Make teh websocket:", (user as any)._id);
 
       // await walletUpdateSocket((user as any)._id, { amount: 0, recipient: 0 });
 
-      console.log('Make the notification after web socket');
+      console.log("Make the notification after web socket");
 
       await notifyTopUp(user, amount, txt.currency, session);
-    } else if (status === 'processing' && txt.status == 'pending') {
-      await transactionService.updateTransaction(txt._id, { status: status }, session);
-    } else if (status === 'failed' || status === 'expired') {
-      await transactionService.updateTransaction(txt._id, { status: status }, session);
+    } else if (status === "processing" && txt.status == "pending") {
+      await transactionService.updateTransaction(
+        txt._id,
+        { status: status },
+        session
+      );
+    } else if (status === "failed" || status === "expired") {
+      await transactionService.updateTransaction(
+        txt._id,
+        { status: status },
+        session
+      );
       //send push notification
       await notifyTopUpFailure(user, amount, txt.currency, session);
     } else {
-      await transactionService.updateTransaction(txt._id, { status: status }, session);
+      await transactionService.updateTransaction(
+        txt._id,
+        { status: status },
+        session
+      );
     }
   }
 }
