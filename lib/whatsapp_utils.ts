@@ -1,4 +1,4 @@
-import { sendTextMessage, sendButtonMessage } from './whapi';
+import { sendTextMessage, sendButtonMessage } from "./whapi";
 import {
   helpMessageTemplate,
   sessionResetMessageTemplate,
@@ -8,17 +8,16 @@ import {
   invalidPhoneNumberMessageTemplate,
   operationCancelledMessageTemplate,
   comingSoonMessageTemplate,
-} from './whapi_message_template';
-import { storeBotIntent, updateBotIntent } from '@/services/bot_intent_service';
-import { generate5MinToken } from '@/services/whatsapp_helpers/handle_auth';
-import * as userService from '@/services/user_service';
-import { startTransaction, commitTransaction } from '@/lib/db_transaction';
+} from "./whapi_message_template";
+import { storeBotIntent } from "@/services/bot_intent_service";
+import { generate5MinToken } from "@/services/whatsapp_helpers/handle_auth";
+import * as userService from "@/services/user_service";
 
 // Global command detection
 export function isGlobalCommand(text: string): boolean {
   if (!text) return false;
   const command = text.toLowerCase().trim();
-  return ['menu', 'restart', 'help', 'cancel'].includes(command);
+  return ["menu", "start", "restart", "help", "cancel"].includes(command);
 }
 
 // Handle global commands
@@ -32,16 +31,17 @@ export async function handleGlobalCommand(
   const commandLower = command.toLowerCase().trim();
 
   switch (commandLower) {
-    case 'help':
+    case "help":
       const helpTemplate = await helpMessageTemplate(message.from);
       await sendTextMessage(message.from, helpTemplate.body.text);
       return true;
 
-    case 'menu':
-    case 'restart':
+    case "menu":
+    case "restart":
+    case "start":
       // Reset session and show main menu
       const newSessionToken = await generate5MinToken(mobile);
-      
+
       await userService.updateUser(
         user._id,
         { bot_session: newSessionToken },
@@ -51,29 +51,37 @@ export async function handleGlobalCommand(
       await storeBotIntent(
         {
           bot_session: newSessionToken,
-          intent: 'start',
+          intent: "start",
           step: 0,
         },
         session
       );
 
-      if (commandLower === 'restart') {
-        const resetTemplate = await sessionResetMessageTemplate(message.from_name, message.from);
+      if (commandLower === "restart") {
+        const resetTemplate = await sessionResetMessageTemplate(
+          message.from_name,
+          message.from
+        );
         await sendButtonMessage(resetTemplate);
       } else {
-        const menuTemplate = await mainMenuMessageTemplate(message.from_name, message.from);
+        const menuTemplate = await mainMenuMessageTemplate(
+          message.from_name,
+          message.from
+        );
         await sendButtonMessage(menuTemplate);
       }
       return true;
 
-    case 'cancel':
+    case "cancel":
       // Cancel current operation and return to menu
-      const cancelTemplate = await operationCancelledMessageTemplate(message.from);
+      const cancelTemplate = await operationCancelledMessageTemplate(
+        message.from
+      );
       await sendTextMessage(message.from, cancelTemplate);
-      
+
       // Reset to main menu
       const cancelSessionToken = await generate5MinToken(mobile);
-      
+
       await userService.updateUser(
         user._id,
         { bot_session: cancelSessionToken },
@@ -83,13 +91,16 @@ export async function handleGlobalCommand(
       await storeBotIntent(
         {
           bot_session: cancelSessionToken,
-          intent: 'start',
+          intent: "start",
           step: 0,
         },
         session
       );
 
-      const menuTemplate = await mainMenuMessageTemplate(message.from_name, message.from);
+      const menuTemplate = await mainMenuMessageTemplate(
+        message.from_name,
+        message.from
+      );
       await sendButtonMessage(menuTemplate);
       return true;
 
@@ -109,32 +120,38 @@ export function isValidPhoneNumber(phone: string): boolean {
   if (!phone) return false;
   // Basic validation for international format
   const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-  return phoneRegex.test(phone.replace(/\s/g, ''));
+  return phoneRegex.test(phone.replace(/\s/g, ""));
 }
 
-export function isValidButtonReply(buttonId: string, expectedIds: string[]): boolean {
+export function isValidButtonReply(
+  buttonId: string,
+  expectedIds: string[]
+): boolean {
   return expectedIds.includes(buttonId);
 }
 
-export function isValidListReply(listId: string, expectedIds: string[]): boolean {
+export function isValidListReply(
+  listId: string,
+  expectedIds: string[]
+): boolean {
   return expectedIds.includes(listId);
 }
 
 // Send validation error messages
 export async function sendValidationError(
-  type: 'amount' | 'phone' | 'selection',
+  type: "amount" | "phone" | "selection",
   mobile: string
 ): Promise<void> {
   switch (type) {
-    case 'amount':
+    case "amount":
       const amountError = await invalidAmountMessageTemplate(mobile);
       await sendTextMessage(mobile, amountError);
       break;
-    case 'phone':
+    case "phone":
       const phoneError = await invalidPhoneNumberMessageTemplate(mobile);
       await sendTextMessage(mobile, phoneError);
       break;
-    case 'selection':
+    case "selection":
       const selectionError = await invalidSelectionMessageTemplate(mobile);
       await sendButtonMessage(selectionError);
       break;
@@ -144,10 +161,10 @@ export async function sendValidationError(
 // Centralized error handling
 export async function handleInvalidInput(
   message: any,
-  expectedInputType: 'button' | 'list' | 'text' | 'amount' | 'phone'
+  expectedInputType: "button" | "list" | "text" | "amount" | "phone"
 ): Promise<void> {
   const mobile = `+${message.from}`;
-  
+
   // Check if it's a global command first
   const textInput = message.text?.body;
   if (textInput && isGlobalCommand(textInput)) {
@@ -157,14 +174,14 @@ export async function handleInvalidInput(
 
   // Send appropriate error message based on expected input type
   switch (expectedInputType) {
-    case 'amount':
-      await sendValidationError('amount', message.from);
+    case "amount":
+      await sendValidationError("amount", message.from);
       break;
-    case 'phone':
-      await sendValidationError('phone', message.from);
+    case "phone":
+      await sendValidationError("phone", message.from);
       break;
     default:
-      await sendValidationError('selection', message.from);
+      await sendValidationError("selection", message.from);
       break;
   }
 }
@@ -189,18 +206,21 @@ export async function handleComingSoonFeature(
   session: any
 ): Promise<void> {
   const featureMap: Record<string, string> = {
-    'csoon': 'Invest in Stocks',
-    'wo2': 'MoneyGram Withdrawal',
+    csoon: "Invest in Stocks",
+    wo2: "MoneyGram Withdrawal",
     // Add more coming soon features here as needed
   };
 
-  const featureName = featureMap[featureId] || 'This Feature';
-  const comingSoonTemplate = await comingSoonMessageTemplate(featureName, message.from);
+  const featureName = featureMap[featureId] || "This Feature";
+  const comingSoonTemplate = await comingSoonMessageTemplate(
+    featureName,
+    message.from
+  );
   await sendButtonMessage(comingSoonTemplate);
 }
 
 // Check if a selection is a coming soon feature
 export function isComingSoonFeature(selectionId: string): boolean {
-  const comingSoonFeatures = ['csoon', 'wo2'];
+  const comingSoonFeatures = ["csoon", "wo2"];
   return comingSoonFeatures.includes(selectionId);
 }
