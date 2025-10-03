@@ -1,7 +1,12 @@
 import * as transactionService from "../services/transaction_service";
 import * as userService from "../services/user_service";
 import * as walletService from "../services/wallet_service";
-import { convertToUSD, currencyConverter } from "../lib/helpers";
+import {
+  convertToUSD,
+  currencyConverter,
+  convertFromUSD,
+} from "../lib/helpers";
+
 import * as currencyService from "../services/currency_service";
 import {
   notifyTopUp,
@@ -311,14 +316,17 @@ export async function withdraw(
 
   // check if user has sufficient balance
   const walletBalance = await walletService.getWalletBalance(user);
-  const userBalance = walletBalance.balance || 0;
-  
-  if (userBalance < amount) {
+  const fiat = await convertFromUSD(walletBalance.balance, userCurrency);
+
+  if (fiat < amount) {
     // send whatsapp message about insufficient balance only if platform is whatsapp
     if (platform === "whatsapp") {
-      await sendTextMessage(user.mobile_number.replace('+', ''), `Dear ${user.name}, your withdrawal of ${amount} ${userCurrency} cannot be processed due to insufficient balance. Please top up your account and try again. Thank you.`);
+      await sendTextMessage(
+        user.mobile_number.replace("+", ""),
+        `Dear ${user.name}, your withdrawal of ${amount} ${userCurrency} cannot be processed due to insufficient balance. Please top up your account and try again. Thank you.`
+      );
     }
-    throw new Error('Insufficient balance for withdrawal');
+    throw new Error("Insufficient balance for withdrawal");
   }
 
   // Prepare transaction data
@@ -385,7 +393,7 @@ export async function withdraw(
     if (data.success) {
       // Withdraw USDC from the user's account only after Monime confirms success
       await walletService.withdraw(user, { amount }, session, "completed");
-      
+
       // Update transaction status to completed
       await transactionService.updateTransaction(
         transaction_id,
