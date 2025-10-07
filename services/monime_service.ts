@@ -116,24 +116,24 @@ export async function deposit(
   const transaction_id = transaction._id;
 
   const options = {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Monime-Space-Id": monime_space_id,
-      "Idempotency-Key": Idkey,
-      "Content-Type": "application/json",
+      'Monime-Space-Id': monime_space_id,
+      'Idempotency-Key': Idkey,
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${monime_api_key}`,
     },
     body: JSON.stringify({
-      name: "Deposit - Byn2",
-      mode: "one_time",
+      name: "funding your wallet",
+      mode: 'one_time',
       enable: true,
-      amount: { currency: "SLE", value: amount * 100 },
-      duration: "1h30m",
+      amount: { currency: 'SLE', value: amount * 100 },
+      duration: '1h30m',
       customer: {
         name: user.name,
       },
       reference: transaction_id,
-      authorizedProviders: ["m17", "m18"],
+      authorizedProviders: ['m17', 'm18'],
       //authorizedPhoneNumber: deposit_number,
       metadata: {},
     }),
