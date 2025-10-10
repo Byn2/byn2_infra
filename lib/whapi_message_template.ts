@@ -353,8 +353,30 @@ export async function mmDepositMessageTemplate1(mobile) {
   };
 }
 
-export async function mmDepositMessageTemplateAmount() {
-  return 'Please enter the amount you want to deposit in your local currency (e.g., 10):';
+export async function mmDepositMessageTemplateAmount(user?: any) {
+  let message = 'Please enter the amount you want to deposit in your local currency (e.g., 10):';
+  
+  if (user) {
+    try {
+      const { getCurrency } = await import('../services/currency_service');
+      const userCurrency = await getCurrency(user);
+      
+      if (userCurrency === 'SLL') {
+        const DEPOSIT_USD_TO_SLL_RATE = parseFloat(process.env.DEPOSIT_USD_TO_SLL_RATE || '24.5');
+        message = `Please enter the amount you want to deposit in SLL (e.g., 100):
+
+💱 *Current Exchange Rate*
+1 USD = ${DEPOSIT_USD_TO_SLL_RATE} SLL
+
+Your deposit will be converted to USD and stored in your wallet.`;
+      }
+    } catch (error) {
+      // Fall back to basic message if error occurs
+      console.error('Error getting currency for deposit message:', error);
+    }
+  }
+  
+  return message;
 }
 
 export async function mmDepositMessageTemplateConfirm(name, mobile, depositing_number, amount) {
@@ -626,8 +648,30 @@ export async function withdrawMethodMessageTemplate(mobile) {
   };
 }
 
-export async function withdrawAmountMessageTemplate() {
-  return 'Enter the amount you want to withdraw in Leones (Le). For example: 10';
+export async function withdrawAmountMessageTemplate(user?: any) {
+  let message = 'Enter the amount you want to withdraw in Leones (Le). For example: 10';
+  
+  if (user) {
+    try {
+      const { getCurrency } = await import('../services/currency_service');
+      const userCurrency = await getCurrency(user);
+      
+      if (userCurrency === 'SLL') {
+        const WITHDRAW_USD_TO_SLL_RATE = parseFloat(process.env.WITHDRAW_USD_TO_SLL_RATE || '23.5');
+        message = `Enter the amount you want to withdraw in SLL (e.g., 100):
+
+💱 *Current Exchange Rate*
+1 USD = ${WITHDRAW_USD_TO_SLL_RATE} SLL
+
+Your USD wallet balance will be converted to SLL for withdrawal.`;
+      }
+    } catch (error) {
+      // Fall back to basic message if error occurs
+      console.error('Error getting currency for withdraw message:', error);
+    }
+  }
+  
+  return message;
 }
 
 export async function withdrawNumberMessageTemplate(mobile) {

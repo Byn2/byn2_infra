@@ -65,7 +65,7 @@ export async function handleWithdraw(message: any, botIntent: any, method?: any,
 
         if (botIntent.step === 0 || botIntent.step === 1) {
           // Ask for amount
-          const ctx = await withdrawAmountMessageTemplate();
+          const ctx = await withdrawAmountMessageTemplate(user);
           await sendTextMessage(message.from, ctx);
 
           await updateBotIntent(
