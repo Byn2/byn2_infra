@@ -2,6 +2,8 @@ import { sendButtonMessage, sendTextMessage } from '@/lib/whapi';
 import { updateBotIntent } from '@/services/bot_intent_service';
 import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_transaction';
 import * as walletService from '@/services/wallet_service';
+import * as currencyService from '@/services/currency_service';
+import { convertFromUSD } from '@/lib/helpers';
 import {
   transferMessageTemplateConfirmLocal,
   transferMessageTemplateConfirmUSD,
@@ -13,6 +15,7 @@ import {
 import {
   isValidAmount,
   isValidPhoneNumber,
+  normalizePhoneNumber,
   extractButtonId,
   extractTextInput,
   sendValidationError,
@@ -45,6 +48,19 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
         return;
       }
 
+      // Check if user has sufficient balance
+      const userCurrency = await currencyService.getCurrency(user);
+      const walletBalance = await walletService.getWalletBalance(user);
+      const fiatBalance = await convertFromUSD(walletBalance.balance, userCurrency, 'withdrawal');
+      
+      if (fiatBalance < parseFloat(amount)) {
+        await sendTextMessage(
+          message.from,
+          `Dear ${user.name}, your transfer of ${amount} ${userCurrency} cannot be processed due to insufficient balance. Your current balance is ${fiatBalance.toFixed(2)} ${userCurrency}. Please top up your account and try again. Thank you.`
+        );
+        return;
+      }
+
       const ctx = await transferMessageTemplateNumber();
       await sendTextMessage(message.from, ctx);
       await updateBotIntent(
@@ -65,20 +81,22 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
         return;
       }
 
+      const normalizedNumber = normalizePhoneNumber(number);
+
       // Send appropriate confirmation message based on currency
       let ctx;
       if (botIntent.currency === 'local') {
         ctx = await transferMessageTemplateConfirmLocal(
           message.from_name,
           message.from,
-          number,
+          normalizedNumber,
           botIntent.amount
         );
       } else {
         ctx = await transferMessageTemplateConfirmUSD(
           message.from_name,
           message.from,
-          number,
+          normalizedNumber,
           botIntent.amount
         );
       }
@@ -87,7 +105,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
       await updateBotIntent(
         botIntent._id,
         {
-          number: number,
+          number: normalizedNumber,
           step: 3,
         },
         session

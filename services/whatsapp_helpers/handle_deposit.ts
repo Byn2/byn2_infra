@@ -17,6 +17,7 @@ import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_
 import {
   isValidAmount,
   isValidPhoneNumber,
+  normalizePhoneNumber,
   extractButtonId,
   extractListId,
   extractTextInput,
@@ -69,7 +70,7 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
       } else if (botIntent.step === 2) {
         const fundingAcct = extractButtonId(message);
         if (fundingAcct === 'ButtonsV3:self') {
-          const ctx = await mmDepositMessageTemplateAmount();
+          const ctx = await mmDepositMessageTemplateAmount(user);
           await sendTextMessage(message.from, ctx);
           await updateBotIntent(
             botIntent._id,
@@ -102,13 +103,14 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
               return;
             }
 
-            const ctx = await mmDepositMessageTemplateAmount();
+            const normalizedNumber = normalizePhoneNumber(number);
+            const ctx = await mmDepositMessageTemplateAmount(user);
             await sendTextMessage(message.from, ctx);
             await updateBotIntent(
               botIntent._id,
               {
                 step: 3,
-                number: number,
+                number: normalizedNumber,
               },
               session
             );

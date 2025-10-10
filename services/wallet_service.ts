@@ -109,7 +109,16 @@ async function processTransaction({
     }
 
     const userCurrency = await currencyService.getCurrency(user);
-    const amountInUSDC = await convertToUSD(amount, userCurrency);
+    let amountInUSDC;
+    
+    // Use appropriate exchange rate based on transaction type
+    if (type === 'deposit') {
+      amountInUSDC = await convertToUSD(amount, userCurrency, 'deposit');
+    } else if (type === 'withdraw') {
+      amountInUSDC = await convertToUSD(amount, userCurrency, 'withdrawal');
+    } else {
+      amountInUSDC = await convertToUSD(amount, userCurrency, 'general');
+    }
 
     let recipientUser = null;
     let recipientCurrency = null;
@@ -304,7 +313,7 @@ export async function transferToPubKey(user: any, data: any, session: any) {
 
   const userCurrency = await currencyService.getCurrency(user);
 
-  const amountInUSDC = await convertToUSD(amount, userCurrency);
+  const amountInUSDC = await convertToUSD(amount, userCurrency, 'general');
 
   await sendUSDC(user.mobile_number, publicKey, amountInUSDC);
 

@@ -9,12 +9,16 @@ import {
   withdrawFailedMessageTemplate,
 } from '@/lib/whapi_message_template';
 import * as monimeService from '@/services/monime_service';
+import * as walletService from '@/services/wallet_service';
+import * as currencyService from '@/services/currency_service';
+import { convertFromUSD } from '@/lib/helpers';
 import { sendButtonMessage, sendTextMessage } from '@/lib/whapi';
 import { updateBotIntent } from '@/services/bot_intent_service';
 import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_transaction';
 import {
   isValidAmount,
   isValidPhoneNumber,
+  normalizePhoneNumber,
   extractButtonId,
   extractListId,
   extractTextInput,
@@ -61,7 +65,7 @@ export async function handleWithdraw(message: any, botIntent: any, method?: any,
 
         if (botIntent.step === 0 || botIntent.step === 1) {
           // Ask for amount
-          const ctx = await withdrawAmountMessageTemplate();
+          const ctx = await withdrawAmountMessageTemplate(user);
           await sendTextMessage(message.from, ctx);
 
           await updateBotIntent(
@@ -77,6 +81,20 @@ export async function handleWithdraw(message: any, botIntent: any, method?: any,
 
           if (!amt || !isValidAmount(amt)) {
             await sendValidationError('amount', message.from);
+            await commitTransaction(session);
+            return;
+          }
+
+          // Check if user has sufficient balance
+          const userCurrency = await currencyService.getCurrency(user);
+          const walletBalance = await walletService.getWalletBalance(user);
+          const fiatBalance = await convertFromUSD(walletBalance.balance, userCurrency, 'withdrawal');
+          
+          if (fiatBalance < parseFloat(amt)) {
+            await sendTextMessage(
+              message.from,
+              `Dear ${user.name}, your withdrawal of ${amt} ${userCurrency} cannot be processed due to insufficient balance. Your current balance is ${fiatBalance.toFixed(2)} ${userCurrency}. Please top up your account and try again. Thank you.`
+            );
             await commitTransaction(session);
             return;
           }
@@ -154,8 +172,10 @@ export async function handleWithdraw(message: any, botIntent: any, method?: any,
                 return;
               }
 
+              const normalizedNumber = normalizePhoneNumber(number);
+
               // Validate the different number for mobile money support
-              const differentNumberResult: MobileOperatorResult = lookupMobileOperator(number);
+              const differentNumberResult: MobileOperatorResult = lookupMobileOperator(normalizedNumber);
               if (!isLookupSuccess(differentNumberResult)) {
                 await sendValidationError('phone', message.from);
                 await commitTransaction(session);
@@ -174,7 +194,7 @@ export async function handleWithdraw(message: any, botIntent: any, method?: any,
               const ctx = await withdrawConfirmMessageTemplate(
                 message.from_name,
                 message.from,
-                number,
+                normalizedNumber,
                 botIntent.amount
               );
               await sendButtonMessage(ctx);
@@ -183,7 +203,7 @@ export async function handleWithdraw(message: any, botIntent: any, method?: any,
                 botIntent._id,
                 {
                   step: 4,
-                  number: number,
+                  number: normalizedNumber,
                 },
                 session
               );
