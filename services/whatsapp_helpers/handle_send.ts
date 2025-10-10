@@ -13,6 +13,7 @@ import {
 import {
   isValidAmount,
   isValidPhoneNumber,
+  normalizePhoneNumber,
   extractButtonId,
   extractTextInput,
   sendValidationError,
@@ -65,20 +66,22 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
         return;
       }
 
+      const normalizedNumber = normalizePhoneNumber(number);
+
       // Send appropriate confirmation message based on currency
       let ctx;
       if (botIntent.currency === 'local') {
         ctx = await transferMessageTemplateConfirmLocal(
           message.from_name,
           message.from,
-          number,
+          normalizedNumber,
           botIntent.amount
         );
       } else {
         ctx = await transferMessageTemplateConfirmUSD(
           message.from_name,
           message.from,
-          number,
+          normalizedNumber,
           botIntent.amount
         );
       }
@@ -87,7 +90,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
       await updateBotIntent(
         botIntent._id,
         {
-          number: number,
+          number: normalizedNumber,
           step: 3,
         },
         session

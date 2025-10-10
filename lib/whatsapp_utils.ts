@@ -123,6 +123,21 @@ export function isValidPhoneNumber(phone: string): boolean {
   return phoneRegex.test(phone.replace(/\s/g, ""));
 }
 
+export function normalizePhoneNumber(phone: string): string {
+  if (!phone) return phone;
+  
+  // Remove any whitespace
+  const cleaned = phone.replace(/\s/g, "");
+  
+  // If it already starts with +, return as is
+  if (cleaned.startsWith("+")) {
+    return cleaned;
+  }
+  
+  // Add + prefix if it doesn't exist
+  return `+${cleaned}`;
+}
+
 export function isValidButtonReply(
   buttonId: string,
   expectedIds: string[]

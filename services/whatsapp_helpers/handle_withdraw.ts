@@ -15,6 +15,7 @@ import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_
 import {
   isValidAmount,
   isValidPhoneNumber,
+  normalizePhoneNumber,
   extractButtonId,
   extractListId,
   extractTextInput,
@@ -154,8 +155,10 @@ export async function handleWithdraw(message: any, botIntent: any, method?: any,
                 return;
               }
 
+              const normalizedNumber = normalizePhoneNumber(number);
+
               // Validate the different number for mobile money support
-              const differentNumberResult: MobileOperatorResult = lookupMobileOperator(number);
+              const differentNumberResult: MobileOperatorResult = lookupMobileOperator(normalizedNumber);
               if (!isLookupSuccess(differentNumberResult)) {
                 await sendValidationError('phone', message.from);
                 await commitTransaction(session);
@@ -174,7 +177,7 @@ export async function handleWithdraw(message: any, botIntent: any, method?: any,
               const ctx = await withdrawConfirmMessageTemplate(
                 message.from_name,
                 message.from,
-                number,
+                normalizedNumber,
                 botIntent.amount
               );
               await sendButtonMessage(ctx);
@@ -183,7 +186,7 @@ export async function handleWithdraw(message: any, botIntent: any, method?: any,
                 botIntent._id,
                 {
                   step: 4,
-                  number: number,
+                  number: normalizedNumber,
                 },
                 session
               );
