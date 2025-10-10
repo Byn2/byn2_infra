@@ -2,6 +2,8 @@ import { sendButtonMessage, sendTextMessage } from '@/lib/whapi';
 import { updateBotIntent } from '@/services/bot_intent_service';
 import { startTransaction, commitTransaction, abortTransaction } from '@/lib/db_transaction';
 import * as walletService from '@/services/wallet_service';
+import * as currencyService from '@/services/currency_service';
+import { convertFromUSD } from '@/lib/helpers';
 import {
   transferMessageTemplateConfirmLocal,
   transferMessageTemplateConfirmUSD,
@@ -43,6 +45,19 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
 
       if (!amount || !isValidAmount(amount)) {
         await sendValidationError('amount', message.from);
+        return;
+      }
+
+      // Check if user has sufficient balance
+      const userCurrency = await currencyService.getCurrency(user);
+      const walletBalance = await walletService.getWalletBalance(user);
+      const fiatBalance = await convertFromUSD(walletBalance.balance, userCurrency, 'withdrawal');
+      
+      if (fiatBalance < parseFloat(amount)) {
+        await sendTextMessage(
+          message.from,
+          `Dear ${user.name}, your transfer of ${amount} ${userCurrency} cannot be processed due to insufficient balance. Your current balance is ${fiatBalance.toFixed(2)} ${userCurrency}. Please top up your account and try again. Thank you.`
+        );
         return;
       }
 
