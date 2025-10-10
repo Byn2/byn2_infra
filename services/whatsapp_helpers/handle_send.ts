@@ -9,7 +9,6 @@ import {
   transferMessageTemplateConfirmUSD,
   transferMessageTemplateNumber,
   transfertMessageTemplateAmountLocal,
-  transfertMessageTemplateAmountUSD,
   transfertMessageTemplateStatusSender,
 } from '@/lib/whapi_message_template';
 import {
