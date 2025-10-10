@@ -3,9 +3,14 @@
  import { lookup } from 'country-data-codes';
 //const { getCountryList, lookup} = require("country-data-codes")
 import converter from 'currency-exchanger-js';
-const USD_TO_SLL_RATE = 23.5;
-const SLL_TO_USD_RATE = 23.5;
+
+// Get exchange rates from environment variables
+const DEPOSIT_USD_TO_SLL_RATE = parseFloat(process.env.DEPOSIT_USD_TO_SLL_RATE || '24.5');
+const WITHDRAW_USD_TO_SLL_RATE = parseFloat(process.env.WITHDRAW_USD_TO_SLL_RATE || '23.5');
 const TO_CURRENCY = 'USD';
+
+// Operation types for exchange rate calculations
+type OperationType = 'deposit' | 'withdrawal' | 'general';
 
 export async function getCountryCurrency(countryCode) {
 
@@ -39,14 +44,16 @@ export async function currencyConverter(amount, from, to) {
   }
 }
 
-export async function convertToUSD(amount, fromCurrency) {
+export async function convertToUSD(amount, fromCurrency, operationType: OperationType = 'general') {
   let result;
   const date = new Date();
   const formattedDate = formatDateToYYYYMMDD(date);
   const numericAmount = Number(amount);
 
   if (fromCurrency === 'SLL') {
-    result = (numericAmount / USD_TO_SLL_RATE);
+    // Use appropriate rate based on operation type
+    const rate = operationType === 'deposit' ? DEPOSIT_USD_TO_SLL_RATE : WITHDRAW_USD_TO_SLL_RATE;
+    result = (numericAmount / rate);
   } else {
     result = await converter.convertOnDate(
       numericAmount,
@@ -59,19 +66,21 @@ export async function convertToUSD(amount, fromCurrency) {
   return result;
 }
 
-export async function convertFromUSD(amount, fromCurrency) {
+export async function convertFromUSD(amount, toCurrency, operationType: OperationType = 'withdrawal') {
   let result;
   const date = new Date();
   const formattedDate = formatDateToYYYYMMDD(date);
   const numericAmount = Number(amount);
 
-  if (fromCurrency === 'SLL') {
-    result = numericAmount * SLL_TO_USD_RATE;
+  if (toCurrency === 'SLL') {
+    // Use appropriate rate based on operation type
+    const rate = operationType === 'withdrawal' ? WITHDRAW_USD_TO_SLL_RATE : DEPOSIT_USD_TO_SLL_RATE;
+    result = numericAmount * rate;
   } else {
     result = await converter.convertOnDate(
       numericAmount,
       TO_CURRENCY,
-      fromCurrency,
+      toCurrency,
       new Date(formattedDate)
     );
   }

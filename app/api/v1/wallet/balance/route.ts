@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const currency = await currecyService.getCurrency(auth.user);
 
     const wallet = await walletService.getWalletBalance(auth.user);
-    const fiat = await convertFromUSD(wallet.balance, currency);
+    const fiat = await convertFromUSD(wallet.balance, currency, 'withdrawal');
 
     return NextResponse.json({
       wallet: { usdc: wallet.balance, fiat: fiat, address: wallet.address },

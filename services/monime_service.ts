@@ -308,15 +308,12 @@ export async function withdraw(
 
   // Get user's currency
   const userCurrency = await currencyService.getCurrency(user);
-  const convertedAmount = await currencyConverter(
-    amount,
-    userCurrency,
-    userCurrency
-  );
+  // For withdrawal, we're converting from userCurrency to USD for internal processing
+  const convertedAmount = await convertToUSD(amount, userCurrency, 'withdrawal');
 
   // check if user has sufficient balance
   const walletBalance = await walletService.getWalletBalance(user);
-  const fiat = await convertFromUSD(walletBalance.balance, userCurrency);
+  const fiat = await convertFromUSD(walletBalance.balance, userCurrency, 'withdrawal');
 
   if (fiat < amount) {
     // send whatsapp message about insufficient balance only if platform is whatsapp

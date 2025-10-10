@@ -22,7 +22,7 @@ export async function handleCheckBalance(message: any, botIntent: any): Promise<
     const user = fetchedUser.data;
     const currency = await currencyService.getCurrency(user);
     const wallet = await walletService.getWalletBalance(user);
-    const fiat = await convertFromUSD(wallet.balance, currency);
+    const fiat = await convertFromUSD(wallet.balance, currency, 'withdrawal');
 
     // Update bot intent to success status first
     await updateBotIntent(
