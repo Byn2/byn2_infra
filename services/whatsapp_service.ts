@@ -131,11 +131,11 @@ export async function init(body: any) {
       const mainMenuBtn = extractListId(message);
       if (mainMenuBtn) {
         if (mainMenuBtn === 'ListV3:d1') {
-          await handleDeposit(message, botIntent);
+          await handleDeposit(message, botIntent, null, authResult.user);
         } else if (mainMenuBtn === 'ListV3:t1') {
-          await handleSend(message, botIntent);
+          await handleSend(message, botIntent, null, authResult.user);
         } else if (mainMenuBtn === 'ListV3:w1') {
-          await handleWithdraw(message, botIntent);
+          await handleWithdraw(message, botIntent, null, authResult.user);
         } else if (mainMenuBtn === 'ListV3:c1') {
           await handleCheckBalance(message, botIntent);
         } else if (mainMenuBtn === 'ListV3:csoon') {
@@ -161,11 +161,11 @@ export async function init(body: any) {
       const mainMenuBtn = extractListId(message);
       if (mainMenuBtn) {
         if (mainMenuBtn === 'ListV3:d1') {
-          await handleDeposit(message, botIntent);
+          await handleDeposit(message, botIntent, null, authResult.user);
         } else if (mainMenuBtn === 'ListV3:t1') {
-          await handleSend(message, botIntent);
+          await handleSend(message, botIntent, null, authResult.user);
         } else if (mainMenuBtn === 'ListV3:w1') {
-          await handleWithdraw(message, botIntent);
+          await handleWithdraw(message, botIntent, null, authResult.user);
         } else if (mainMenuBtn === 'ListV3:c1') {
           await handleCheckBalance(message, botIntent);
         } else if (mainMenuBtn === 'ListV3:csoon') {
@@ -281,13 +281,13 @@ async function handleWarningResponse(
     // Call handlers the same way as fresh operations from main menu
     if (requestedOperation === 'deposit') {
      
-      await handleDeposit(message, updatedBotIntent);
+      await handleDeposit(message, updatedBotIntent, null, user);
     } else if (requestedOperation === 'transfer') {
     
-      await handleSend(message, updatedBotIntent);
+      await handleSend(message, updatedBotIntent, null, user);
     } else if (requestedOperation === 'withdraw') {
      
-      await handleWithdraw(message, updatedBotIntent);
+      await handleWithdraw(message, updatedBotIntent, null, user);
     } else if (requestedOperation === 'check_balance') {
      
       await handleCheckBalance(message, updatedBotIntent);

@@ -38,8 +38,20 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
       session
     );
   } else if (botIntent.intent === 'transfer') {
+    // Handle step 0 - ask for amount (when called from warning dialog)
+    if (botIntent.step === 0) {
+      const ctx = await transfertMessageTemplateAmountLocal();
+      await sendTextMessage(message.from, ctx);
+      await updateBotIntent(
+        botIntent._id,
+        {
+          currency: 'local',
+          step: 1,
+        },
+        session
+      );
     // Step 1: Amount input
-    if (botIntent.step === 1) {
+    } else if (botIntent.step === 1) {
       const amount = extractTextInput(message);
 
       if (!amount || !isValidAmount(amount)) {

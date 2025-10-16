@@ -44,7 +44,18 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
     const ctx = await depositMethodMessageTemplate(message.from);
     await sendButtonMessage(ctx);
   } else if (botIntent.intent === 'deposit') {
-    if (method === 'ListV3:do1' || botIntent.intent_option === 'mobile_money') {
+    // Handle case where method is null and we need to show method selection
+    if (!method && (botIntent.step === 0 || botIntent.step === 1)) {
+      const ctx = await depositMethodMessageTemplate(message.from);
+      await sendButtonMessage(ctx);
+      await updateBotIntent(
+        botIntent._id,
+        {
+          step: 1,
+        },
+        session
+      );
+    } else if (method === 'ListV3:do1' || botIntent.intent_option === 'mobile_money') {
       if (method) {
         await updateBotIntent(
           botIntent._id,
