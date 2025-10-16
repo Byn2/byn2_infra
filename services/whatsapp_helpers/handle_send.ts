@@ -181,7 +181,7 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
           },
           session
         );
-      } else if (confirmBtn === 'ButtonsV3:tt_cancel') {
+      } else if (confirmBtn === 'ButtonsV3:cancel') {
         await updateBotIntent(
           botIntent._id,
           {
@@ -190,6 +190,16 @@ export async function handleSend(message: any, botIntent: any, currency?: any, u
           },
           session
         );
+        
+        // Send cancellation message and main menu
+        const { operationCancelledMessageTemplate, mainMenuMessageTemplate } = await import('../../lib/whapi_message_template');
+        const { sendTextMessage, sendButtonMessage } = await import('../../lib/whapi');
+        
+        const cancelMessage = await operationCancelledMessageTemplate(message.from);
+        await sendTextMessage(message.from, cancelMessage);
+        
+        const menuTemplate = await mainMenuMessageTemplate(message.from_name, message.from);
+        await sendButtonMessage(menuTemplate);
       } else {
         await handleInvalidInput(message, 'button');
       }

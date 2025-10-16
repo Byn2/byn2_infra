@@ -215,6 +215,16 @@ export async function handleDeposit(message: any, botIntent: any, method?: any, 
             },
             session
           );
+          
+          // Send cancellation message and main menu
+          const { operationCancelledMessageTemplate, mainMenuMessageTemplate } = await import('../../lib/whapi_message_template');
+          const { sendTextMessage, sendButtonMessage } = await import('../../lib/whapi');
+          
+          const cancelMessage = await operationCancelledMessageTemplate(message.from);
+          await sendTextMessage(message.from, cancelMessage);
+          
+          const menuTemplate = await mainMenuMessageTemplate(message.from_name, message.from);
+          await sendButtonMessage(menuTemplate);
         } else {
           await handleInvalidInput(message, 'button');
         }
