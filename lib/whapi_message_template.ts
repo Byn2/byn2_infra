@@ -354,7 +354,7 @@ export async function mmDepositMessageTemplate1(mobile) {
 }
 
 export async function mmDepositMessageTemplateAmount(user?: any) {
-  let message = 'Please enter the amount you want to deposit in your local currency (e.g., 10):';
+  let message = 'Please enter the amount you want to deposit in Leones (Le) (e.g., 10):';
   
   if (user) {
     try {
@@ -763,7 +763,7 @@ export async function checkBalanceMessageTemplate(
   usdc: number,
   fiat: number
 ) {
-  return `💰 Hi ${name}, here's your current wallet balance:\n\n💵 USDC: $${usdc}\n💴 Fiat: Le ${fiat}`;
+  return `💰 Hi ${name}, here's your current wallet balance:\n\n🇺🇸 USDC: $${usdc}\n🇸🇱 Leones: Le ${fiat}`;
 }
 
 // Error and global command templates
@@ -844,6 +844,35 @@ export async function invalidPhoneNumberMessageTemplate(mobile: string) {
 
 export async function operationCancelledMessageTemplate(mobile: string) {
   return `✅ Operation cancelled successfully. Returning to main menu...`;
+}
+
+export async function operationInProgressWarningTemplate(currentOperation: string, requestedOperation: string, mobile: string) {
+  return {
+    body: {
+      text: `⚠️ *Operation In Progress*\n\nYou're currently in the middle of a *${currentOperation}* operation.\n\nStarting a new *${requestedOperation}* operation will cancel your current progress.\n\nWhat would you like to do?`,
+    },
+    action: {
+      buttons: [
+        {
+          type: 'quick_reply',
+          id: 'continue_current',
+          title: `Continue ${currentOperation}`,
+        },
+        {
+          type: 'quick_reply',
+          id: 'start_new',
+          title: `Start ${requestedOperation}`,
+        },
+        {
+          type: 'quick_reply',
+          id: 'back_to_menu',
+          title: 'Back to Menu',
+        },
+      ],
+    },
+    type: 'button',
+    to: mobile,
+  };
 }
 
 export async function comingSoonMessageTemplate(featureName: string, mobile: string) {

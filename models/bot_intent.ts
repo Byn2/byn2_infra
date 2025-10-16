@@ -70,6 +70,23 @@ const botIntentSchema = new mongoose.Schema(
     sender_name: {
       type: String,
       default: null,
+    },
+    // Dynamic fields used for operation restoration
+    pending_operation: {
+      type: String,
+      default: null,
+    },
+    original_step: {
+      type: Number,
+      default: null,
+    },
+    ussd_code: {
+      type: String,
+      default: null,
+    },
+    depositing_number: {
+      type: String,
+      default: null,
     }
   },
   { timestamps: true }
