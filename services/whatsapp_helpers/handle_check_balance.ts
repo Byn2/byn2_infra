@@ -23,6 +23,8 @@ export async function handleCheckBalance(message: any, botIntent: any): Promise<
     const currency = await currencyService.getCurrency(user);
     const wallet = await walletService.getWalletBalance(user);
     const fiat = await convertFromUSD(wallet.balance, currency, 'withdrawal');
+    console.log('wallet', wallet.balance.toFixed(2));
+    console.log('fiat', fiat.toFixed(2));
 
     // Update bot intent to success status first
     await updateBotIntent(
@@ -39,8 +41,8 @@ export async function handleCheckBalance(message: any, botIntent: any): Promise<
     const ctx = await checkBalanceMessageTemplate(
       message.from_name,
       message.from,
-      wallet.balance,
-      fiat
+      parseFloat(wallet.balance.toFixed(2)),
+      parseFloat(fiat.toFixed(2))
     );
 
     await sendTextMessage(message.from, ctx);
@@ -57,13 +59,12 @@ export async function handleCheckBalance(message: any, botIntent: any): Promise<
         number: null,
         payer: null,
         intent_option: null,
-        ussd: ""
+        ussd: '',
       },
       session
     );
 
     await commitTransaction(session);
-    
   } catch (error) {
     console.error('Error in handleCheckBalance:', error);
     await abortTransaction(session);

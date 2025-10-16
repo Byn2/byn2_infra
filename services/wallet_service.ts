@@ -110,7 +110,7 @@ async function processTransaction({
 
     const userCurrency = await currencyService.getCurrency(user);
     let amountInUSDC;
-    
+
     // Use appropriate exchange rate based on transaction type
     if (type === 'deposit') {
       amountInUSDC = await convertToUSD(amount, userCurrency, 'deposit');
@@ -152,8 +152,9 @@ async function processTransaction({
         break;
       case 'withdraw':
         // Assume withdrawal is processed asynchronously via webhook
+        
         status = externalStatus;
-        if (status == 'pending') {
+        if (status == 'completed') {
           await makeWithdraw(user.mobile_number, amountInUSDC);
         }
         break;
@@ -231,7 +232,7 @@ async function processTransaction({
         const { generate5MinToken } = await import('./whatsapp_helpers/handle_auth');
 
         const sessionToken = await generate5MinToken(recipientUser.mobile_number);
-        
+
         await storeBotIntent(
           {
             bot_session: sessionToken,
@@ -246,7 +247,6 @@ async function processTransaction({
           session
         );
       }
-      
     }
 
     return {

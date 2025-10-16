@@ -313,6 +313,7 @@ export async function withdraw(
 
   // check if user has sufficient balance
   const walletBalance = await walletService.getWalletBalance(user);
+  
   const fiat = await convertFromUSD(walletBalance.balance, userCurrency, 'withdrawal');
 
   if (fiat < amount) {

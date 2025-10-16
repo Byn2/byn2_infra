@@ -20,8 +20,6 @@ export async function GET() {
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
 
-      console.log(decoded);
-
       await ensureConnection();
       const user = await userService.fetchUserById(decoded.id);
 
