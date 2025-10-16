@@ -81,7 +81,7 @@ export async function init(body: any) {
       await commitTransaction(session);
       return;
     } else {
-      console.log('🚨 User NOT in warning state, step is:', botIntent.step);
+      console.log('🚨 User NOT in warning state, step is:');
     }
 
     
