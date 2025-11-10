@@ -131,9 +131,14 @@ export async function mainMenuMessageTemplate(name, mobile) {
                 description: 'Check your wallet balance',
               },
               {
-                id: 'csoon',
+                id: 'stl1',
                 title: 'Invest in Stocks',
-                description: 'Coming soon',
+                description: 'Start investing in stocks',
+              },
+              {
+                id: 'ctsupport1',
+                title: 'Contact Support',
+                description: 'Contact our support team',
               },
             ],
           },
@@ -169,7 +174,7 @@ export async function welcomeNewUserMessageTemplate(name: string, mobile: string
     },
     type: 'button',
     media:
-      'https://images.unsplash.com/photo-1659018966825-43297e655ccf?q=80&w=1198&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      'https://res.cloudinary.com/dedzd3wza/image/upload/v1762807282/PHOTO-2025-10-01-11-16-15_ccsu9v.jpg',
     to: mobile,
   };
 }
@@ -780,7 +785,7 @@ export async function invalidSelectionMessageTemplate(mobile: string) {
 export async function helpMessageTemplate(mobile: string) {
   return {
     body: {
-      text: `🆘 *Mocha Help Center*\n\n💬 *Quick Commands (type anytime):*\n• *menu* - Return to main menu\n• *restart* - Start fresh conversation\n• *help* - Show this help message\n• *cancel* - Cancel current operation\n\n💰 *What I can help you with:*\n• Deposit funds via mobile money or crypto\n• Send money instantly to WhatsApp contacts\n• Withdraw funds to your mobile money account\n• Check your wallet balance anytime\n\nNeed more assistance? Contact our support team!`,
+      text: `🆘 *Mocha Help Center*\n\n💬 *Quick Commands (type anytime):*\n• *menu* - Return to main menu\n• *restart* - Start fresh conversation\n• *help* - Show this help message\n• *cancel* - Cancel current operation\n\n💰 *What I can help you with:*\n• Deposit funds via mobile money or crypto\n• Send money instantly to WhatsApp contacts\n• Withdraw funds to your mobile money account\n• Check your wallet balance anytime\n\nNeed more assistance? Contact our support team! \n+232 73938372`,
     },
     type: 'text',
     to: mobile,
@@ -819,9 +824,14 @@ export async function sessionResetMessageTemplate(name: string, mobile: string) 
                 description: 'Check your wallet balance',
               },
               {
-                id: 'csoon',
+                id: 'stl1',
                 title: 'Invest in Stocks',
-                description: 'Coming soon',
+                description: 'Start investing in stocks',
+              },
+              {
+                id: 'ctsupport1',
+                title: 'Contact Support',
+                description: 'Contact our support team',
               },
             ],
           },
@@ -833,6 +843,8 @@ export async function sessionResetMessageTemplate(name: string, mobile: string) 
     to: mobile,
   };
 }
+
+
 
 export async function invalidAmountMessageTemplate(mobile: string) {
   return `❌ Please enter a valid amount using numbers only.\n\nExamples: 10 or 25.50\n\n💡 Type "cancel" to return to main menu.`;
@@ -871,6 +883,72 @@ export async function operationInProgressWarningTemplate(currentOperation: strin
       ],
     },
     type: 'button',
+    to: mobile,
+  };
+}
+
+export async function supportTeamMessageTemplate(mobile: string) {
+  return {
+    body: {
+      text: `Need more assistance? Contact our support team! \n+232 73938372`,
+    },
+    type: 'text',
+    to: mobile,
+  };
+}
+
+
+export async function stocklineMessageTemplate(name: string, mobile: string) {
+  return {
+    header: {
+      text: '📈 Start Your Investment Journey',
+    },
+    body: {
+      text: `Hi ${name}! 👋\n\nReady to grow your wealth? Stockline makes it easy to invest in stocks and securities right from your phone! 💰`,
+    },
+    footer: {
+      text: `\n\nJoin thousands already building their financial future with us!" - More personal with "building their financial future 🚀`,
+    },
+    action: {
+      buttons: [
+        {
+          type: 'url',
+          title: 'Explore Stocks',
+          id: 'stl',
+          url: 'https://stockline.getmocha.io/stocks',
+        },
+      ],
+    },
+    type: 'button',
+    media: 'https://res.cloudinary.com/dedzd3wza/image/upload/v1762808348/stocks_xfaexi.jpg',
+    to: mobile,
+  };
+}
+
+export async function contactSupportMessageTemplate(name: string, mobile: string) {
+  return {
+    header: {
+      text: "Need Help? We're Here! 🆘",
+    },
+    body: {
+      text: `Hi ${name}! 👋\n\nOur support team is ready to assist you with any questions or issues you may have. We're here to help make
+   your Mocha experience smooth and seamless! 💬`,
+    },
+    footer: {
+      text: `\n\nAvailable 24/7 to support you! 💜`,
+    },
+    action: {
+      buttons: [
+        {
+          type: 'url',
+          title: 'Contact support',
+          id: 'ctsupport',
+          url: 'https://wa.me/23273938372?src=qr&text=Hello',
+        },
+      ],
+    },
+    type: 'button',
+    media: 'https://res.cloudinary.com/dedzd3wza/image/upload/v1762808348/stocks_xfaexi.jpg',
     to: mobile,
   };
 }

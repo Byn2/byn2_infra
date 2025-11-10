@@ -19,7 +19,7 @@ import { number } from 'zod';
 export function isGlobalCommand(text: string): boolean {
   if (!text) return false;
   const command = text.toLowerCase().trim();
-  return ['menu', 'start', 'restart', 'help', 'cancel'].includes(command);
+  return ['menu', 'start', 'restart', 'help', 'cancel', 'hi', 'hello', 'hey', 'sup', ].includes(command);
 }
 
 // Handle global commands
@@ -40,6 +40,10 @@ export async function handleGlobalCommand(
 
     case 'menu':
     case 'restart':
+    case 'hi':
+    case 'hello':
+    case 'hey':
+    case 'sup':
     case 'start':
       // Reset session and show main menu
       const newSessionToken = await generate5MinToken(mobile);
