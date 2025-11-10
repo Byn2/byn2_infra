@@ -1,5 +1,3 @@
-
-
 // export async function otpVerifyMessageTemplate(otp: string) {}
 
 // export async function otpResendMessageTemplate(otp: string) {}
@@ -58,35 +56,35 @@ You can now deposit with mobile money or crypto, transfer funds, withdraw to you
 
 function getTimeBasedGreeting(name: string): string {
   const hour = new Date().getHours();
-  
+
   const morningGreetings = [
     `Good morning, ${name}! Hope your morning is going well.`,
     `Good morning, ${name}! Hope you're having a bright start to your day.`,
     `Good morning, ${name}! Trust you're having a wonderful morning.`,
     `Good morning, ${name}! Hope your day is off to a great start.`,
-    `Good morning, ${name}! Wishing you a productive and blessed morning.`
+    `Good morning, ${name}! Wishing you a productive and blessed morning.`,
   ];
-  
+
   const afternoonGreetings = [
     `Good afternoon, ${name}! Hope you're having a wonderful day.`,
     `Good afternoon, ${name}! Hope your afternoon is treating you well.`,
     `Good afternoon, ${name}! Trust your day is going smoothly.`,
     `Good afternoon, ${name}! Hope you're having a productive afternoon.`,
-    `Good afternoon, ${name}! Wishing you a pleasant rest of your day.`
+    `Good afternoon, ${name}! Wishing you a pleasant rest of your day.`,
   ];
-  
+
   const eveningGreetings = [
     `Good evening, ${name}! Hope your evening is treating you kindly.`,
     `Good evening, ${name}! Hope you're winding down nicely.`,
     `Good evening, ${name}! Trust you've had a wonderful day.`,
     `Good evening, ${name}! Hope you're having a relaxing evening.`,
-    `Good evening, ${name}! Wishing you a peaceful end to your day.`
+    `Good evening, ${name}! Wishing you a peaceful end to your day.`,
   ];
-  
+
   const getRandomGreeting = (greetings: string[]) => {
     return greetings[Math.floor(Math.random() * greetings.length)];
   };
-  
+
   if (hour < 12) {
     return getRandomGreeting(morningGreetings);
   } else if (hour < 17) {
@@ -98,7 +96,7 @@ function getTimeBasedGreeting(name: string): string {
 
 export async function mainMenuMessageTemplate(name, mobile) {
   const greeting = getTimeBasedGreeting(name);
-  
+
   return {
     body: {
       text: `${greeting} \n It's always great to hear from you. \n\n How can I help you today?`,
@@ -226,7 +224,12 @@ export async function newUserCongratulationsMessageTemplate(name: string, mobile
 }
 
 // Welcome message for money recipients who are not in the database
-export async function recipientWelcomeMessageTemplate(mobile: string, currency: string, amount: number, fromName: string) {
+export async function recipientWelcomeMessageTemplate(
+  mobile: string,
+  currency: string,
+  amount: number,
+  fromName: string
+) {
   return {
     body: {
       text: `🎉 Great news! You've received ${amount} ${currency} from ${fromName}!\n\n💰 *Your money is waiting for you*\n\nTo access your funds and start using Mocha's secure digital wallet, you'll need to create a free account. With Mocha you can:\n\n• Receive and send money instantly\n• Deposit via mobile money or crypto\n• Withdraw to your bank account\n• Secure transactions with blockchain\n\nWould you like to get started and claim your money?`,
@@ -249,7 +252,13 @@ export async function recipientWelcomeMessageTemplate(mobile: string, currency: 
 }
 
 // Onboarding completion message for recipients after they create account
-export async function recipientOnboardingCompleteTemplate(name: string, mobile: string, currency: string, amount: number, fromName: string) {
+export async function recipientOnboardingCompleteTemplate(
+  name: string,
+  mobile: string,
+  currency: string,
+  amount: number,
+  fromName: string
+) {
   return {
     body: {
       text: `🎉 Welcome to Mocha, ${name}!\n\nYour account is now active and your ${amount} ${currency} from ${fromName} is in your wallet!\n\n💡 *What's next?*\n• Check your balance to see your funds\n• Withdraw to your bank account\n• Send money to friends and family\n• Deposit more funds anytime\n\n**Quick Commands:**\n• Type "menu" for all options\n• Type "balance" to check funds\n• Type "help" for assistance`,
@@ -360,12 +369,12 @@ export async function mmDepositMessageTemplate1(mobile) {
 
 export async function mmDepositMessageTemplateAmount(user?: any) {
   let message = 'Please enter the amount you want to deposit in Leones (Le) (e.g., 10):';
-  
+
   if (user) {
     try {
       const { getCurrency } = await import('../services/currency_service');
       const userCurrency = await getCurrency(user);
-      
+
       if (userCurrency === 'SLL') {
         const DEPOSIT_USD_TO_SLL_RATE = parseFloat(process.env.DEPOSIT_USD_TO_SLL_RATE || '24.5');
         message = `Please enter the amount you want to deposit in SLL (e.g., 100):
@@ -380,7 +389,7 @@ Your deposit will be converted to USD and stored in your wallet.`;
       console.error('Error getting currency for deposit message:', error);
     }
   }
-  
+
   return message;
 }
 
@@ -467,13 +476,21 @@ export async function mmDepositMessageTemplateUSSDDifferentNumber(mobile, ussd) 
 
 //crypto
 
-export async function cryptoDepositMessageTemplate(mobile: string, walletAddress: string, qrCodeUrl?: string | null) {
+export async function cryptoDepositMessageTemplate(
+  mobile: string,
+  walletAddress: string,
+  qrCodeUrl?: string | null
+) {
   return {
     header: {
       text: 'Crypto Deposit',
     },
     body: {
-      text: `💰 *Deposit USDC to your wallet*\n\n⚠️ *IMPORTANT WARNING:*\nThis account only receives USDC. Any other token sent here will be lost and won't be replaced.\n\n*Your Wallet Address:*\n${walletAddress}\n\n${qrCodeUrl ? 'Scan the QR code above or tap "Copy Address" below to copy your wallet address for the deposit.' : 'Tap "Copy Address" below to copy your wallet address for the deposit.'}`,
+      text: `💰 *Deposit USDC to your wallet*\n\n⚠️ *IMPORTANT WARNING:*\nThis account only receives USDC. Any other token sent here will be lost and won't be replaced.\n\n*Your Wallet Address:*\n${walletAddress}\n\n${
+        qrCodeUrl
+          ? 'Scan the QR code above or tap "Copy Address" below to copy your wallet address for the deposit.'
+          : 'Tap "Copy Address" below to copy your wallet address for the deposit.'
+      }`,
     },
     footer: {
       text: `\n\nOnly send SOLANA USDC to this address! 🔒`,
@@ -489,7 +506,9 @@ export async function cryptoDepositMessageTemplate(mobile: string, walletAddress
       ],
     },
     type: 'button',
-    media: qrCodeUrl || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    media:
+      qrCodeUrl ||
+      'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     to: mobile,
   };
 }
@@ -655,12 +674,12 @@ export async function withdrawMethodMessageTemplate(mobile) {
 
 export async function withdrawAmountMessageTemplate(user?: any) {
   let message = 'Enter the amount you want to withdraw in Leones (Le). For example: 10';
-  
+
   if (user) {
     try {
       const { getCurrency } = await import('../services/currency_service');
       const userCurrency = await getCurrency(user);
-      
+
       if (userCurrency === 'SLL') {
         const WITHDRAW_USD_TO_SLL_RATE = parseFloat(process.env.WITHDRAW_USD_TO_SLL_RATE || '23.5');
         message = `Enter the amount you want to withdraw in SLL (e.g., 100):
@@ -675,7 +694,7 @@ Your USD wallet balance will be converted to SLL for withdrawal.`;
       console.error('Error getting currency for withdraw message:', error);
     }
   }
-  
+
   return message;
 }
 
@@ -844,8 +863,6 @@ export async function sessionResetMessageTemplate(name: string, mobile: string) 
   };
 }
 
-
-
 export async function invalidAmountMessageTemplate(mobile: string) {
   return `❌ Please enter a valid amount using numbers only.\n\nExamples: 10 or 25.50\n\n💡 Type "cancel" to return to main menu.`;
 }
@@ -858,7 +875,11 @@ export async function operationCancelledMessageTemplate(mobile: string) {
   return `✅ Operation cancelled successfully. Returning to main menu...`;
 }
 
-export async function operationInProgressWarningTemplate(currentOperation: string, requestedOperation: string, mobile: string) {
+export async function operationInProgressWarningTemplate(
+  currentOperation: string,
+  requestedOperation: string,
+  mobile: string
+) {
   return {
     body: {
       text: `⚠️ *Operation In Progress*\n\nYou're currently in the middle of a *${currentOperation}* operation.\n\nStarting a new *${requestedOperation}* operation will cancel your current progress.\n\nWhat would you like to do?`,
@@ -896,7 +917,6 @@ export async function supportTeamMessageTemplate(mobile: string) {
     to: mobile,
   };
 }
-
 
 export async function stocklineMessageTemplate(name: string, mobile: string) {
   return {
@@ -948,7 +968,8 @@ export async function contactSupportMessageTemplate(name: string, mobile: string
       ],
     },
     type: 'button',
-    media: 'https://res.cloudinary.com/dedzd3wza/image/upload/v1762808348/stocks_xfaexi.jpg',
+    media:
+      'https://res.cloudinary.com/dedzd3wza/image/upload/v1762807282/PHOTO-2025-10-01-11-16-15_ccsu9v.jpg',
     to: mobile,
   };
 }
@@ -974,7 +995,3 @@ export async function comingSoonMessageTemplate(featureName: string, mobile: str
     to: mobile,
   };
 }
-
-
-
-
