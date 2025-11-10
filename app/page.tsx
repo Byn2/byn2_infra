@@ -31,7 +31,7 @@ export default function Home() {
                 <p className="max-w-[600px] text-gray-700 md:text-lg">
                   Empowering businesses in Sierra Leone to securely accept and
                   make payments from international and local customers by
-                  providing fast and easy payment experience.
+                
                 </p>
               </div>
 
